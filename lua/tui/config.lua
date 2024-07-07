@@ -26,8 +26,8 @@ Config.__index = Config
 Config.__is_class = true
 
 ---@param config? { keymaps?: TUIKeymapsConfig, default_extra_args?: ShellOpts, default_extra_env_vars?: ShellOpts, notifier?: TUINotifierConfig }
-Config.setup = function(config)
-  Config.value = opts_utils.deep_extend(Config.value, config)
+function Config:setup(config)
+  self.value = opts_utils.deep_extend(Config.value, config)
 end
 
 ---@type TUIConfig.config
@@ -50,6 +50,6 @@ local default_config = {
   default_extra_env_vars = {},
 }
 
-Config.value = default_config
+function Config:new() self.value = default_config end
 
 return Config

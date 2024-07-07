@@ -31,41 +31,42 @@ Controller.__index = Controller
 Controller.__is_class = true
 
 -- Index of active controllers
--- A singleton.
 --
 ---@class TUIControllersIndex
 ---@field _id_map table<TUIControllerId, TUIController>
 ---@field most_recent? TUIController
-local ControllersIndex = {
-  _id_map = {},
-  most_recent = nil,
-}
+local ControllersIndex = {}
 ControllersIndex.__index = ControllersIndex
 ControllersIndex.__is_class = true
+
+function ControllersIndex:new()
+  return setmetatable({
+    _id_map = {},
+    most_recent = nil,
+  }, ControllersIndex)
+end
 
 -- Retrieve a controller by its ID
 --
 ---@param id TUIControllerId
 ---@return TUIController | nil
-function ControllersIndex.get(id) return ControllersIndex._id_map[id] end
+function ControllersIndex:get(id) return self._id_map[id] end
 
 -- Remove a controller by its ID
 --
 ---@param id TUIControllerId
-function ControllersIndex.remove(id)
-  local controller = ControllersIndex.get(id)
-  ControllersIndex._id_map[id] = nil
+function ControllersIndex:remove(id)
+  local controller = self:get(id)
+  self._id_map[id] = nil
 
-  if ControllersIndex.most_recent == controller then
-    ControllersIndex.most_recent = nil
-  end
+  if self.most_recent == controller then self.most_recent = nil end
 end
 
 -- Add a controller to the index
 --
 ---@param controller TUIController
-function ControllersIndex.add(controller)
-  ControllersIndex._id_map[controller._id] = controller
+function ControllersIndex:add(controller)
+  self._id_map[controller._id] = controller
 end
 
 M.ControllersIndex = ControllersIndex
@@ -196,6 +197,8 @@ function Controller:_start(opts)
 
   self:show_and_focus()
 
+  opts.hooks.before_start()
+
   local job_id = vim.fn.termopen(command, {
     on_exit = function(job_id, code, event)
       self.status = "exited"
@@ -216,6 +219,8 @@ function Controller:_start(opts)
   self._job_id = job_id
 
   self.status = "running"
+
+  opts.hooks.after_start()
 end
 
 -- Send a message to the running tui instance
