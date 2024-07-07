@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/samsze0/test.nvim/0.2.0/nvim-test-runner.schema.json",
+  "testDependencies": [
+    {
+      "uri": "file:../utils.nvim"
+    },
+    {
+      "uri": "https://github.com/MunifTanjim/nui.nvim",
+      "sha": "0.3.0"
+    },
+    {
+      "uri": "file:../jumplist.nvim"
+    }
+  ]
+}
