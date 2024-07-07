@@ -197,11 +197,9 @@ function Controller:_env_vars_extend(env_vars)
   return env_vars
 end
 
----@param opts { command: string, hooks: { before_start: function, after_start: function } }
+---@param opts { command: string }
 function Controller:_start(opts)
   self:show_and_focus()
-
-  opts.hooks.before_start()
 
   local job_id = vim.fn.termopen(opts.command, {
     on_exit = function(job_id, code, event)
@@ -223,8 +221,6 @@ function Controller:_start(opts)
   self._job_id = job_id
 
   self.status = "running"
-
-  opts.hooks.after_start()
 end
 
 -- Send a message to the running tui instance
