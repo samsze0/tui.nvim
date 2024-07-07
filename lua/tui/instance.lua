@@ -1,15 +1,10 @@
 local Controller = require("tui.controller").Controller
 local SinglePaneLayout = require("tui.layout").SinglePaneLayout
 local DualPaneLayout = require("tui.layout").DualPaneLayout
-local config = require("tui.config").value
 local opts_utils = require("utils.opts")
 local lang_utils = require("utils.lang")
 local terminal_utils = require("utils.terminal")
 local tbl_utils = require("utils.table")
-
-local _info = config.notifier.info
-local _warn = config.notifier.warn
-local _error = config.notifier.error
 
 local M = {}
 

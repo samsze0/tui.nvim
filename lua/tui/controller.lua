@@ -14,7 +14,7 @@ local M = {}
 ---@class TUIController
 ---@field _id TUIControllerId The id of the controller
 ---@field _index TUIControllersIndex Index of the controllers
----@fieid _config TUIConfig
+---@field _config TUIConfig Configuration of the plugin
 ---@field focus? TUIFocusedEntry The currently focused entry
 ---@field _extra_args? ShellOpts Extra arguments to pass to tui
 ---@field _ui_hooks? TUIUIHooks UI hooks
@@ -73,22 +73,22 @@ M.Controller = Controller
 ---@class TUICreateControllerOptions
 ---@field extra_args? ShellOpts
 ---@field extra_env_vars? ShellOpts
+---@field index? TUIControllersIndex
+---@field config? TUIConfig
 
 -- Create controller
 --
----@param index TUIControllersIndex
----@param config TUIConfig
 ---@param opts? TUICreateControllerOptions
 ---@return TUIController
-function Controller.new(index, config, opts)
+function Controller.new(opts)
   opts = opts_utils.extend({}, opts)
   ---@cast opts TUICreateControllerOptions
 
   local controller_id = uuid_utils.v4()
   local controller = {
     _id = controller_id,
-    _index = index,
-    _config = config,
+    _index = opts.index,
+    _config = opts.config,
     focus = nil,
     _extra_args = opts.extra_args,
     _ui_hooks = nil,
@@ -98,7 +98,7 @@ function Controller.new(index, config, opts)
     _status = "pending",
   }
   setmetatable(controller, Controller)
-  index:add(controller)
+  opts.index:add(controller)
 
   ---@cast controller TUIController
 
@@ -177,7 +177,7 @@ function Controller:_args_extend(args)
   args = tbl_utils.tbl_extend(
     { mode = "error" },
     args,
-    self._config.default_extra_args
+    self._config.value.default_extra_args
   )
   args = tbl_utils.tbl_extend({ mode = "error" }, args, self._extra_args)
 
@@ -189,7 +189,7 @@ function Controller:_env_vars_extend(env_vars)
   env_vars = tbl_utils.tbl_extend(
     { mode = "error" },
     env_vars,
-    self._config.default_extra_env_vars
+    self._config.value.default_extra_env_vars
   )
   env_vars =
     tbl_utils.tbl_extend({ mode = "error" }, env_vars, self._extra_env_vars)

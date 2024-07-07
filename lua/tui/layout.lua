@@ -2,14 +2,9 @@ local NuiLayout = require("nui.layout")
 local MainPopup = require("tui.popup").MainPopup
 local SidePopup = require("tui.popup").SidePopup
 local HelpPopup = require("tui.popup").HelpPopup
-local config = require("tui.config").value
 local opts_utils = require("utils.opts")
 local lang_utils = require("utils.lang")
 local match = lang_utils.match
-
-local _info = config.notifier.info
-local _warn = config.notifier.warn
-local _error = config.notifier.error
 
 ---@type nui_layout_options
 local layout_opts = {
@@ -22,6 +17,7 @@ local layout_opts = {
 }
 
 ---@class TUILayout: NuiLayout
+---@field _config TUIConfig
 ---@field maximised_popup? TUIPopup
 ---@field layout_config { default: NuiLayout.Box }
 ---@field main_popup TUIMainPopup
@@ -34,7 +30,7 @@ Layout.__is_class = true
 setmetatable(Layout, { __index = NuiLayout })
 
 ---@param box NuiLayout.Box
----@param opts? { layout_opts?: nui_layout_options }
+---@param opts? { layout_opts?: nui_layout_options, config?: TUIConfig }
 ---@return TUILayout
 function Layout.new(box, opts)
   opts = opts_utils.deep_extend({
@@ -45,6 +41,7 @@ function Layout.new(box, opts)
   setmetatable(obj, Layout)
   ---@cast obj TUILayout
 
+  obj._config = opts.config
   obj.maximised_popup = nil
 
   return obj
@@ -119,6 +116,7 @@ setmetatable(SinglePaneLayout, { __index = Layout })
 ---@field help_popup? TUIHelpPopup
 ---@field extra_layout_opts? nui_layout_options
 ---@field layout_config? { default?: fun(main_popup: TUIMainPopup, help_popup: TUIHelpPopup): NuiLayout.Box }
+---@field config? TUIConfig
 
 ---@param opts? TUICreateSinglePaneLayoutOptions
 ---@return TUISinglePaneLayout
@@ -179,6 +177,7 @@ setmetatable(DualPaneLayout, { __index = Layout })
 ---@field help_popup? TUIHelpPopup
 ---@field extra_layout_opts? nui_layout_options
 ---@field layout_config? TUICreateDualPaneLayoutOptions.layout_config
+---@field config? TUIConfig
 
 ---@param opts? TUICreateDualPaneLayoutOptions
 ---@return TUIDualPaneLayout
@@ -248,14 +247,14 @@ function DualPaneLayout:_setup_keymaps()
   Layout._setup_keymaps(self)
 
   self.main_popup:map(
-    config.keymaps.move_to_pane.right,
+    self._config.value.keymaps.move_to_pane.right,
     "Move to side pane",
     function() self.side_popup:focus() end
   )
 
   self.side_popup:map(
     "n",
-    config.keymaps.move_to_pane.left,
+    self._config.value.keymaps.move_to_pane.left,
     function() self.main_popup:focus() end
   )
 end
@@ -298,6 +297,7 @@ setmetatable(TriplePaneLayout, { __index = Layout })
 ---@field help_popup? TUIHelpPopup
 ---@field extra_layout_opts? nui_layout_options
 ---@field layout_config? TUICreateTriplePaneLayoutOptions.layout_config
+---@field config? TUIConfig
 
 ---@param opts? TUICreateTriplePaneLayoutOptions
 ---@return TUITriplePaneLayout
@@ -388,26 +388,26 @@ function TriplePaneLayout:_setup_keymaps()
   Layout._setup_keymaps(self)
 
   self.main_popup:map(
-    config.keymaps.move_to_pane.right,
+    self._config.value.keymaps.move_to_pane.right,
     "Move to side pane",
     function() self.side_popups.left:focus() end
   )
 
   self.side_popups.left:map(
     "n",
-    config.keymaps.move_to_pane.left,
+    self._config.value.keymaps.move_to_pane.left,
     function() self.main_popup:focus() end
   )
 
   self.side_popups.left:map(
     "n",
-    config.keymaps.move_to_pane.right,
+    self._config.value.keymaps.move_to_pane.right,
     function() self.side_popups.right:focus() end
   )
 
   self.side_popups.right:map(
     "n",
-    config.keymaps.move_to_pane.left,
+    self._config.value.keymaps.move_to_pane.left,
     function() self.side_popups.left:focus() end
   )
 end
@@ -452,6 +452,7 @@ setmetatable(TriplePane2ColumnLayout, { __index = Layout })
 ---@field help_popup? TUIHelpPopup
 ---@field extra_layout_opts? nui_layout_options
 ---@field layout_config? TUICreateTriplePane2ColumnLayoutOptions.layout_config
+---@field config? TUIConfig
 
 ---@param opts? TUICreateTriplePane2ColumnLayoutOptions
 ---@return TUITriplePane2ColumnLayout
@@ -544,26 +545,26 @@ function TriplePane2ColumnLayout:_setup_keymaps()
   Layout._setup_keymaps(self)
 
   self.main_popup:map(
-    config.keymaps.move_to_pane.right,
+    self._config.value.keymaps.move_to_pane.right,
     "Move to side pane",
     function() self.side_popups.top:focus() end
   )
 
   self.side_popups.top:map(
     "n",
-    config.keymaps.move_to_pane.left,
+    self._config.value.keymaps.move_to_pane.left,
     function() self.main_popup:focus() end
   )
 
   self.side_popups.top:map(
     "n",
-    config.keymaps.move_to_pane.bottom,
+    self._config.value.keymaps.move_to_pane.down,
     function() self.side_popups.bottom:focus() end
   )
 
   self.side_popups.bottom:map(
     "n",
-    config.keymaps.move_to_pane.top,
+    self._config.value.keymaps.move_to_pane.up,
     function() self.side_popups.top:focus() end
   )
 end
