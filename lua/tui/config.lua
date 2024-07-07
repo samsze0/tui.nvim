@@ -50,6 +50,10 @@ local default_config = {
   default_extra_env_vars = {},
 }
 
-function Config:new() self.value = default_config end
+function Config:new()
+  return setmetatable({
+    value = opts_utils.deep_extend({}, default_config),
+  }, Config)
+end
 
 return Config

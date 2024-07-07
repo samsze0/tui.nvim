@@ -1,14 +1,9 @@
 local uuid_utils = require("utils.uuid")
 local opts_utils = require("utils.opts")
-local config = require("tui.config").value
 local tbl_utils = require("utils.table")
 local CallbackMap = require("tui.callback-map")
 local terminal_utils = require("utils.terminal")
 local str_utils = require("utils.string")
-
-local _info = config.notifier.info
-local _warn = config.notifier.warn
-local _error = config.notifier.error
 
 local M = {}
 
@@ -18,6 +13,8 @@ local M = {}
 
 ---@class TUIController
 ---@field _id TUIControllerId The id of the controller
+---@field _index TUIControllersIndex Index of the controllers
+---@fieid _config TUIConfig
 ---@field focus? TUIFocusedEntry The currently focused entry
 ---@field _extra_args? ShellOpts Extra arguments to pass to tui
 ---@field _ui_hooks? TUIUIHooks UI hooks
@@ -79,15 +76,19 @@ M.Controller = Controller
 
 -- Create controller
 --
+---@param index TUIControllersIndex
+---@param config TUIConfig
 ---@param opts? TUICreateControllerOptions
 ---@return TUIController
-function Controller.new(opts)
+function Controller.new(index, config, opts)
   opts = opts_utils.extend({}, opts)
   ---@cast opts TUICreateControllerOptions
 
   local controller_id = uuid_utils.v4()
   local controller = {
     _id = controller_id,
+    _index = index,
+    _config = config,
     focus = nil,
     _extra_args = opts.extra_args,
     _ui_hooks = nil,
@@ -97,7 +98,7 @@ function Controller.new(opts)
     _status = "pending",
   }
   setmetatable(controller, Controller)
-  ControllersIndex.add(controller)
+  index:add(controller)
 
   ---@cast controller TUIController
 
@@ -105,12 +106,10 @@ function Controller.new(opts)
 end
 
 -- Destroy controller
---
----@param self TUIController
 function Controller:_destroy()
   self._ui_hooks:destroy()
 
-  ControllersIndex.remove(self._id)
+  self._index:remove(self._id)
 end
 
 -- Retrieve prev window (before opening tui)
@@ -149,7 +148,7 @@ function Controller:show_and_focus()
   self._ui_hooks.show()
   self._ui_hooks.focus()
 
-  ControllersIndex.most_recent = self
+  self._index.most_recent = self
 end
 
 -- Hide the UI
@@ -173,33 +172,38 @@ function Controller:set_ui_hooks(hooks) self._ui_hooks = hooks end
 -- Start the tui process
 function Controller:start() error("Not implemented") end
 
----@param opts { command: string, args: ShellOpts, env_vars: ShellOpts, hooks: { before_start: function, after_start: function } }
-function Controller:_start(opts)
-  local args = opts.args
-  args =
-    tbl_utils.tbl_extend({ mode = "error" }, args, config.default_extra_args)
+---@param args ShellOpts
+function Controller:_args_extend(args)
+  args = tbl_utils.tbl_extend(
+    { mode = "error" },
+    args,
+    self._config.default_extra_args
+  )
   args = tbl_utils.tbl_extend({ mode = "error" }, args, self._extra_args)
 
-  local env_vars = opts.env_vars
+  return args
+end
+
+---@param env_vars ShellOpts
+function Controller:_env_vars_extend(env_vars)
   env_vars = tbl_utils.tbl_extend(
     { mode = "error" },
     env_vars,
-    config.default_extra_env_vars
+    self._config.default_extra_env_vars
   )
   env_vars =
     tbl_utils.tbl_extend({ mode = "error" }, env_vars, self._extra_env_vars)
 
-  local command = opts.command
-  command = ("%s %s"):format(
-    terminal_utils.shell_opts_tostring(env_vars),
-    command
-  )
+  return env_vars
+end
 
+---@param opts { command: string, hooks: { before_start: function, after_start: function } }
+function Controller:_start(opts)
   self:show_and_focus()
 
   opts.hooks.before_start()
 
-  local job_id = vim.fn.termopen(command, {
+  local job_id = vim.fn.termopen(opts.command, {
     on_exit = function(job_id, code, event)
       self.status = "exited"
       self._on_exited_subscribers:invoke_all()
