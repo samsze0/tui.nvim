@@ -1,9 +1,7 @@
-local Controller = require("tui.controller").Controller
+local Controller = require("tui.controller")
 local SinglePaneLayout = require("tui.layout").SinglePaneLayout
-local DualPaneLayout = require("tui.layout").DualPaneLayout
 local opts_utils = require("utils.opts")
 local lang_utils = require("utils.lang")
-local terminal_utils = require("utils.terminal")
 local tbl_utils = require("utils.table")
 
 local M = {}
@@ -18,11 +16,20 @@ setmetatable(Instance, { __index = Controller })
 M.Instance = Instance
 
 ---@class TUICreateInstanceOptions : TUICreateControllerOptions
+---@field controller? TUIController
 
 ---@param opts? TUICreateInstanceOptions
 ---@return TUIInstance
 function Instance.new(opts)
-  local obj = Controller.new(opts)
+  opts = opts_utils.extend({}, opts)
+
+  ---@type TUIInstance
+  local obj
+  if opts.controller ~= nil then
+    obj = opts.controller
+  else
+    obj = Controller.new(opts)
+  end
   setmetatable(obj, Instance)
   ---@cast obj TUIInstance
   return obj

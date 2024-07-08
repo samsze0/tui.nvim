@@ -50,7 +50,8 @@ local default_config = {
   default_extra_env_vars = {},
 }
 
-function Config:new()
+---@return TUIConfig
+function Config.new()
   return setmetatable({
     value = opts_utils.deep_extend({}, default_config),
   }, Config)

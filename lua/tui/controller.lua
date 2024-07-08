@@ -5,15 +5,13 @@ local CallbackMap = require("tui.callback-map")
 local terminal_utils = require("utils.terminal")
 local str_utils = require("utils.string")
 
-local M = {}
-
 ---@alias TUIControllerId string
 ---@alias TUIUIHooks { show: function, hide: function, focus: function, destroy: function }
 ---@alias TUIFocusedEntry any
 
 ---@class TUIController
 ---@field _id TUIControllerId The id of the controller
----@field _index TUIControllersIndex Index of the controllers
+---@field _index TUIControllerMap Index of the controllers
 ---@field _config TUIConfig Configuration of the plugin
 ---@field focus? TUIFocusedEntry The currently focused entry
 ---@field _extra_args? ShellOpts Extra arguments to pass to tui
@@ -27,53 +25,10 @@ local Controller = {}
 Controller.__index = Controller
 Controller.__is_class = true
 
--- Index of active controllers
---
----@class TUIControllersIndex
----@field _id_map table<TUIControllerId, TUIController>
----@field most_recent? TUIController
-local ControllersIndex = {}
-ControllersIndex.__index = ControllersIndex
-ControllersIndex.__is_class = true
-
-function ControllersIndex:new()
-  return setmetatable({
-    _id_map = {},
-    most_recent = nil,
-  }, ControllersIndex)
-end
-
--- Retrieve a controller by its ID
---
----@param id TUIControllerId
----@return TUIController | nil
-function ControllersIndex:get(id) return self._id_map[id] end
-
--- Remove a controller by its ID
---
----@param id TUIControllerId
-function ControllersIndex:remove(id)
-  local controller = self:get(id)
-  self._id_map[id] = nil
-
-  if self.most_recent == controller then self.most_recent = nil end
-end
-
--- Add a controller to the index
---
----@param controller TUIController
-function ControllersIndex:add(controller)
-  self._id_map[controller._id] = controller
-end
-
-M.ControllersIndex = ControllersIndex
-
-M.Controller = Controller
-
 ---@class TUICreateControllerOptions
 ---@field extra_args? ShellOpts
 ---@field extra_env_vars? ShellOpts
----@field index? TUIControllersIndex
+---@field index? TUIControllerMap
 ---@field config? TUIConfig
 
 -- Create controller
@@ -247,4 +202,4 @@ function Controller:on_exited(callback)
   return self._on_exited_subscribers:add_and_return_remove_fn(callback)
 end
 
-return M
+return Controller
