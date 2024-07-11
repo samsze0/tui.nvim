@@ -1,10 +1,13 @@
 local tbl_utils = require("utils.table")
 local lang_utils = require("utils.lang")
 
+---@alias TUIEventMapAction string
+
 ---@class TUIEventMap
----@field private value table<string, TUICallback[]>
+---@field private value table<string, TUIEventMapAction[]>
 local EventMap = {}
 EventMap.__index = EventMap
+EventMap.__is_class = true
 
 ---@param base? TUIEventMap
 ---@return TUIEventMap self
@@ -17,7 +20,7 @@ end
 
 -- Add binds to the map
 --
----@param binds table<string, TUICallback | TUICallback[]>
+---@param binds table<string, TUIEventMapAction | TUIEventMapAction[]>
 ---@return TUIEventMap self
 function EventMap:extend(binds)
   for k, v in pairs(binds) do
@@ -34,7 +37,7 @@ end
 -- Add bind(s) to the map
 --
 ---@param event string
----@param binds TUICallback[]
+---@param binds TUIEventMapAction[]
 ---@param opts { prepend: boolean }
 ---@return TUIEventMap self
 function EventMap:_add(event, binds, opts)
@@ -54,7 +57,7 @@ end
 -- Append bind(s) to the map
 --
 ---@param event string
----@vararg TUICallback
+---@vararg TUIEventMapAction
 ---@return TUIEventMap self
 function EventMap:append(event, ...)
   local binds = { ... }
@@ -64,7 +67,7 @@ end
 -- Prepend bind(s) to the map
 --
 ---@param event string
----@vararg TUICallback
+---@vararg TUIEventMapAction
 ---@return TUIEventMap self
 function EventMap:prepend(event, ...)
   local binds = { ... }
@@ -74,7 +77,7 @@ end
 -- Get bind(s) from the map by event name
 --
 ---@param event string
----@return TUICallback[]
+---@return TUIEventMapAction[]
 function EventMap:get(event)
   local actions = self.value[event]
   if not actions then return {} end

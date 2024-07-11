@@ -1,13 +1,8 @@
 local Controller = require("tui.controller")
-local opts_utils = require("utils.opts")
-local lang_utils = require("utils.lang")
-local tbl_utils = require("utils.table")
-
-local M = {}
 
 -- A trait. Should not be inherited directly.
 --
----@class TUIInstance : TUIController
+---@class TUIInstanceTrait : TUIController
 ---@field layout TUILayout
 local Instance = {}
 Instance.__index = Instance

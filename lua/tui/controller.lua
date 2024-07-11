@@ -152,8 +152,18 @@ function Controller:_env_vars_extend(env_vars)
   return env_vars
 end
 
----@param opts { command: string }
+---@param opts { command: string, exit_code_handler?: fun(code: integer) }
 function Controller:_start(opts)
+  opts = opts_utils.extend({
+    exit_code_handler = function(code)
+      if code == 0 then
+        -- Pass
+      else
+        error("Unexpected exit code: " .. code)
+      end
+    end
+  }, opts)
+
   self:show_and_focus()
 
   local job_id = vim.fn.termopen(opts.command, {
@@ -161,11 +171,7 @@ function Controller:_start(opts)
       self.status = "exited"
       self._on_exited_subscribers:invoke_all()
 
-      if code == 0 then
-        -- Pass
-      else
-        error("Unexpected exit code: " .. code)
-      end
+      opts.exit_code_handler(code)
 
       self:_destroy()
     end,

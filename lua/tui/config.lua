@@ -15,7 +15,11 @@ local opts_utils = require("utils.opts")
 ---@field move_to_pane TUIKeymapsConfig.move_to_pane?
 ---@field copy_filepath_to_clipboard string?
 
----@alias TUIConfig.config { keymaps: TUIKeymapsConfig, default_extra_args: ShellOpts, default_extra_env_vars: ShellOpts, notifier: TUINotifierConfig }
+---@class TUIConfig.config
+---@field keymaps TUIKeymapsConfig?
+---@field default_extra_args ShellOpts?
+---@field default_extra_env_vars ShellOpts?
+---@field notifier TUINotifierConfig?
 
 -- A singleton class to store the configuration
 --
@@ -25,9 +29,9 @@ local Config = {}
 Config.__index = Config
 Config.__is_class = true
 
----@param config? { keymaps?: TUIKeymapsConfig, default_extra_args?: ShellOpts, default_extra_env_vars?: ShellOpts, notifier?: TUINotifierConfig }
+---@param config? TUIConfig.config
 function Config:setup(config)
-  self.value = opts_utils.deep_extend(Config.value, config)
+  self.value = opts_utils.deep_extend(self.value, config)
 end
 
 ---@type TUIConfig.config
