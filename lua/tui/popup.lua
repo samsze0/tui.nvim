@@ -9,6 +9,10 @@ local popup_opts = {
   focusable = true,
   border = {
     style = "rounded",
+    text = {
+      top = "",  -- Border text would not show if this is undefined
+      bottom = "",
+    },
   },
   win_options = {
     winblend = 0,
@@ -139,7 +143,7 @@ function SidePopup:get_lines()
 end
 
 ---@param lines string[]
----@param opts? { cursor_pos?: number[] }
+---@param opts? { cursor_pos?: number[], filetype?: string }
 function SidePopup:set_lines(lines, opts)
   opts = opts_utils.extend({}, opts)
 
@@ -148,6 +152,8 @@ function SidePopup:set_lines(lines, opts)
     vim.api.nvim_win_set_cursor(self.winid, opts.cursor_pos or { 1, 0 })
     vim.api.nvim_win_call(self.winid, function() vim.cmd("normal! zz") end)
   end
+
+  vim.bo[self.bufnr].filetype = opts.filetype or ""
 end
 
 ---@param path string
