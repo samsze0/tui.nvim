@@ -233,14 +233,18 @@ function SidePopup:show_file_content(path, opts)
 
   
   local filetype = file_utils.get_filetype(path)
-  if not filetype then
-    self:set_lines({ "Cannot determine filetype" })
-    return false
+  if filetype then
+    if tbl_utils.contains(opts.exclude_filetypes, filetype) then
+      self:set_lines({
+        "No preview available for filetype " .. filetype,
+      })
+      return false
+    end
   end
-  if tbl_utils.contains(opts.exclude_filetypes, filetype) then
-    self:set_lines({
-      "No preview available for filetype " .. filetype,
-    })
+
+  local is_text = file_utils.is_text(path)
+  if not is_text then
+    self:set_lines({ "Not a text file" })
     return false
   end
 
