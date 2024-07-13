@@ -3,6 +3,7 @@ local NuiEvent = require("nui.utils.autocmd").event
 local opts_utils = require("utils.opts")
 local tbl_utils = require("utils.table")
 local terminal_utils = require("utils.terminal")
+local file_utils = require("utils.files")
 
 ---@type nui_popup_options
 local popup_opts = {
@@ -158,36 +159,27 @@ end
 
 ---@param path string
 ---@param opts? { cursor_pos?: number[] }
+---@return boolean success
 function SidePopup:show_file_content(path, opts)
   opts = opts_utils.extend({}, opts)
 
   if vim.fn.filereadable(path) ~= 1 then
     self:set_lines({ "File not readable, or doesnt exist" })
-    return
+    return false
   end
 
-  local file_mime, status, _ = terminal_utils.system("file --mime " .. path)
-  if status ~= 0 then
-    self:set_lines({ "Cannot determine if file is binary" })
-    return
-  end
-  ---@cast file_mime string
-
-  local is_binary = file_mime:match("charset=binary")
-
-  if is_binary then
-    self:set_lines({ "No preview available for binary file" })
-    return
+  local file_size = vim.fn.getfsize(path)
+  -- Check if file_size exceeds 1MB
+  if file_size > 1024 * 1024 then
+    self:set_lines({ "File is too large for preview" })
+    return false
   end
 
-  local lines = vim.fn.readfile(path)
-  local filename = vim.fn.fnamemodify(path, ":t")
-  local filetype = vim.filetype.match({
-    filename = filename,
-    contents = lines,
-  })
+  local lines = file_utils.read_file(path, { binary = true })  -- Read in binary mode to avoid extra CR being trimmed
+  local filetype = file_utils.get_filetype(path, { content = lines })
   self:set_lines(lines, { cursor_pos = opts.cursor_pos })
   vim.bo[self.bufnr].filetype = filetype or ""
+  return true
 end
 
 ---@param buf number
