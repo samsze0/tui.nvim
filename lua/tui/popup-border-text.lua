@@ -22,7 +22,7 @@ PopupBorderTextComponent.__is_class = true
 ---@return TUIPopupBorderText.component
 function PopupBorderTextComponent.new(renderer)
   local obj = {
-    _subcribers = {},
+    _subscribers = {},
     output = "",
   }
   setmetatable(obj, PopupBorderTextComponent)
