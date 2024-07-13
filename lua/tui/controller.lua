@@ -19,7 +19,7 @@ local str_utils = require("utils.string")
 ---@field _extra_env_vars? ShellOpts Extra environment variables to pass to tui
 ---@field _prev_win? integer Previous window before opening tui
 ---@field _on_exited_subscribers TUICallbackMap Map of subscribers of the exit event
----@field status "pending" | "started" | "running" | "exited" The status of the controller
+---@field status "pending" | "started" | "running" | "exited" | "destroyed" The status of the controller
 ---@field _job_id string Job ID of the tui process
 local Controller = {}
 Controller.__index = Controller
@@ -53,7 +53,6 @@ function Controller.new(opts)
     _status = "pending",
   }
   setmetatable(controller, Controller)
-  opts.index:add(controller)
 
   ---@cast controller TUIController
 
@@ -65,6 +64,8 @@ function Controller:_destroy()
   self._ui_hooks:destroy()
 
   self._index:remove(self._id)
+
+  self._status = "destroyed"
 end
 
 -- Retrieve prev window (before opening tui)
@@ -168,6 +169,8 @@ function Controller:_start(opts)
 
   local job_id = vim.fn.termopen(opts.command, {
     on_exit = function(job_id, code, event)
+      if self.status ~= "running" then return end
+
       self.status = "exited"
       self._on_exited_subscribers:invoke_all()
 
@@ -182,6 +185,8 @@ function Controller:_start(opts)
   self._job_id = job_id
 
   self.status = "running"
+
+  self._index:add(self)
 end
 
 -- Send a message to the running tui instance

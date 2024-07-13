@@ -15,7 +15,7 @@ function Instance:setup_controller_ui_hooks()
     show = function() self.layout:show() end,
     hide = function() self.layout:hide() end,
     focus = function() self.layout.main_popup:focus() end,
-    destroy = function() self.layout:unmount() end,
+    destroy = function() end,
   })
 end
 

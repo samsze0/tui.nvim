@@ -40,4 +40,11 @@ function ControllerMap:add(controller)
   self._id_map[controller._id] = controller
 end
 
+-- Retrieve all controllers
+--
+---@return TUIController[]
+function ControllerMap:all()
+  return tbl_utils.values(self._id_map)
+end
+
 return ControllerMap
