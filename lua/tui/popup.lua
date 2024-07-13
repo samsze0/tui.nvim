@@ -157,11 +157,25 @@ function SidePopup:set_lines(lines, opts)
   vim.bo[self.bufnr].filetype = opts.filetype or ""
 end
 
+-- Show the content of a file in the popup
+--
+-- If file cannot be shown for any reason, it will show an error message instead
+--
 ---@param path string
----@param opts? { cursor_pos?: number[] }
+---@param opts? { cursor_pos?: number[], exclude_filetypes?: string[] }
 ---@return boolean success
 function SidePopup:show_file_content(path, opts)
-  opts = opts_utils.extend({}, opts)
+  opts = opts_utils.extend({
+    exclude_filetypes = {},
+  }, opts)
+
+  self:set_lines({})
+
+  local type = vim.fn.getftype(path)
+  if type ~= "file" then
+    self:set_lines({ "Not a file" })
+    return false
+  end
 
   if vim.fn.filereadable(path) ~= 1 then
     self:set_lines({ "File not readable, or doesnt exist" })
@@ -176,9 +190,19 @@ function SidePopup:show_file_content(path, opts)
   end
 
   local lines = file_utils.read_file(path, { binary = true })  -- Read in binary mode to avoid extra CR being trimmed
+
   local filetype = file_utils.get_filetype(path, { content = lines })
+
+  if tbl_utils.contains(opts.exclude_filetypes, filetype) then
+    self:set_lines({
+      "No preview available for filetype " .. filetype,
+    })
+    return false
+  end
+
   self:set_lines(lines, { cursor_pos = opts.cursor_pos })
   vim.bo[self.bufnr].filetype = filetype or ""
+
   return true
 end
 
