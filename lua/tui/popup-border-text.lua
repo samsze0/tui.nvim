@@ -1,3 +1,5 @@
+local tbl_utils = require("utils.table")
+
 local NuiLine = require("nui.line")
 
 ---@enum TUIPopupBorderText.section
@@ -6,21 +8,17 @@ local Section = {
   right = "right",
 }
 
----@alias TUIPopupBorderText.component.render fun(output: NuiText | string)
----@alias TUIPopupBorderText.component.renderer fun(render: TUIPopupBorderText.component.render)
 ---@alias TUIPopupBorderText.component.subscriber fun(output: NuiText | string)
 
 ---@class TUIPopupBorderText.component
 ---@field _subscribers TUIPopupBorderText.component.subscriber[]
 ---@field output NuiText | string
----@field render TUIPopupBorderText.component.render
 local PopupBorderTextComponent = {}
 PopupBorderTextComponent.__index = PopupBorderTextComponent
 PopupBorderTextComponent.__is_class = true
 
----@param renderer TUIPopupBorderText.component.renderer
 ---@return TUIPopupBorderText.component
-function PopupBorderTextComponent.new(renderer)
+function PopupBorderTextComponent.new()
   local obj = {
     _subscribers = {},
     output = "",
@@ -28,17 +26,16 @@ function PopupBorderTextComponent.new(renderer)
   setmetatable(obj, PopupBorderTextComponent)
   ---@cast obj TUIPopupBorderText.component
 
-  obj.render = function(output)
-    obj.output = output
-
-    for _, subscriber in ipairs(obj._subscribers) do
-      subscriber(output)
-    end
-  end
-
-  renderer(obj.render)
-
   return obj
+end
+
+---@param output NuiText | string
+function PopupBorderTextComponent:render(output)
+  self.output = output
+
+  for _, subscriber in ipairs(self._subscribers) do
+    subscriber(output)
+  end
 end
 
 ---@param callback TUIPopupBorderText.component.subscriber
@@ -75,34 +72,64 @@ function PopupBorderText.new(opts)
 end
 
 ---@param section TUIPopupBorderText.section
----@param component_renderer TUIPopupBorderText.component.renderer
-function PopupBorderText:prepend(section, component_renderer)
-  local component = PopupBorderTextComponent.new(component_renderer)
+---@return TUIPopupBorderText.component
+function PopupBorderText:prepend(section)
+  local component = PopupBorderTextComponent.new()
   table.insert(self._components[section], 1, component)
 
   component:on_render(function(output)
     self:_render()
   end)
+
+  return component
 end
 
 ---@param section TUIPopupBorderText.section
----@param component_renderer TUIPopupBorderText.component.renderer
-function PopupBorderText:append(section, component_renderer)
-  local component = PopupBorderTextComponent.new(component_renderer)
+---@return TUIPopupBorderText.component
+function PopupBorderText:append(section)
+  local component = PopupBorderTextComponent.new()
   table.insert(self._components[section], component)
 
   component:on_render(function(output)
     self:_render()
   end)
+
+  return component
 end
 
 function PopupBorderText:_render()
   local output = NuiLine()
-  for section, _ in pairs(self._components) do
-    for _, component in ipairs(self._components[section]) do
-      output:append(component.output)
-    end
+
+  local left_texts = tbl_utils.map(self._components[Section.left], function(_, c)
+    return c.output
+  end)
+  local right_texts = tbl_utils.map(self._components[Section.right], function(_, c)
+    return c.output
+  end)
+
+  -- TODO: "push" left and right to the end
+  -- local left_width = tbl_utils.sum(left_texts, function(_, t)
+  --   if type(t) == "string" then
+  --     return #t
+  --   else
+  --     return t:length()
+  --   end
+  -- end)
+  -- local right_width = tbl_utils.sum(right_texts, function(_, t)
+  --   if type(t) == "string" then
+  --     return #t
+  --   else
+  --     return t:length()
+  --   end
+  -- end)
+
+  for _, text in ipairs(left_texts) do
+    output:append(text)
   end
+  for _, text in ipairs(right_texts) do
+    output:append(text)
+  end
+
   self._output = output
   for _, subscriber in ipairs(self._subscribers) do
     subscriber(output)
