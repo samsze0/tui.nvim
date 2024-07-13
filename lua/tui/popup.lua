@@ -231,16 +231,20 @@ function SidePopup:show_file_content(path, opts)
     return false
   end
 
-  local lines = file_utils.read_file(path, { binary = true })  -- Read in binary mode to avoid extra CR being trimmed
-
-  local filetype = file_utils.get_filetype(path, { content = lines })
-
+  
+  local filetype = file_utils.get_filetype(path)
+  if not filetype then
+    self:set_lines({ "Cannot determine filetype" })
+    return false
+  end
   if tbl_utils.contains(opts.exclude_filetypes, filetype) then
     self:set_lines({
       "No preview available for filetype " .. filetype,
     })
     return false
   end
+
+  local lines = file_utils.read_file(path, { binary = true })  -- Read in binary mode to avoid extra CR being trimmed
 
   self:set_lines(lines, { cursor_pos = opts.cursor_pos })
   vim.bo[self.bufnr].filetype = filetype or ""
