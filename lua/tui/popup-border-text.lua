@@ -1,6 +1,7 @@
 local tbl_utils = require("utils.table")
 
 local NuiLine = require("nui.line")
+local NuiText = require("nui.text")
 
 ---@enum TUIPopupBorderText.section
 local Section = {
@@ -49,21 +50,25 @@ end
 ---@field _components table<TUIPopupBorderText.section, TUIPopupBorderText.component[]>
 ---@field _subscribers (fun(output: NuiLine)[])
 ---@field _output NuiLine | string
+---@field _popup TUIPopup For retrieving the popup's width
+---@field _fake_border NuiText
 local PopupBorderText = {}
 PopupBorderText.__index = PopupBorderText
 PopupBorderText.__is_class = true
 
----@param opts { config: TUIConfig }
+---@param opts { config: TUIConfig, popup: TUIPopup }
 ---@return TUIPopupBorderText
 function PopupBorderText.new(opts)
   local obj = {
     _config = opts.config,
+    _popup = opts.popup,
     _components = {
       [Section.left] = {},
       [Section.right] = {},
     },
     _output = "",
     _subscribers = {},
+    _fake_border = NuiText(""),
   }
   setmetatable(obj, PopupBorderText)
   ---@cast obj TUIPopupBorderText
@@ -98,6 +103,10 @@ function PopupBorderText:append(section)
 end
 
 function PopupBorderText:_render()
+  if not self._popup.winid then
+    return
+  end
+
   local output = NuiLine()
 
   local left_texts = tbl_utils.map(self._components[Section.left], function(_, c)
@@ -107,27 +116,63 @@ function PopupBorderText:_render()
     return c.output
   end)
 
-  -- TODO: "push" left and right to the end
-  -- local left_width = tbl_utils.sum(left_texts, function(_, t)
-  --   if type(t) == "string" then
-  --     return #t
-  --   else
-  --     return t:length()
-  --   end
-  -- end)
-  -- local right_width = tbl_utils.sum(right_texts, function(_, t)
-  --   if type(t) == "string" then
-  --     return #t
-  --   else
-  --     return t:length()
-  --   end
-  -- end)
+  -- TODO: make these char configurable
+  local padding = " "
+  local sep = " "
 
-  for _, text in ipairs(left_texts) do
-    output:append(text)
+  local left_width = tbl_utils.sum(left_texts, function(_, t)
+    if type(t) == "string" then
+      return #t
+    else
+      return t:length()
+    end
+  end)
+  local total_left_width
+  if left_width == 0 then
+    total_left_width = 0
+  else
+    total_left_width = left_width + (#left_texts - 1) * #sep + #padding * 2
   end
-  for _, text in ipairs(right_texts) do
-    output:append(text)
+  local right_width = tbl_utils.sum(right_texts, function(_, t)
+    if type(t) == "string" then
+      return #t
+    else
+      return t:length()
+    end
+  end)
+  local total_right_width
+  if right_width == 0 then
+    total_right_width = 0
+  else
+    total_right_width = right_width + (#right_texts - 1) * #sep + #padding * 2
+  end
+
+  local remaining_width = vim.api.nvim_win_get_width(self._popup.winid) - total_left_width - total_right_width
+
+  if left_width > 0 then
+    output:append(padding)
+    for i, text in ipairs(left_texts) do
+      if i < #left_texts then
+        output:append(sep)
+      end
+      output:append(text)
+    end
+    output:append(padding)
+  end
+
+  -- TODO: rely on nui native API instead (once this feat is available)
+  self._fake_border:set(("─"):rep(remaining_width), "FloatBorder")
+  output:append(self._fake_border)
+
+  if right_width > 0 then
+    output:append(padding)
+    for i, text in ipairs(right_texts) do
+      if i < #right_texts then
+        output:append(sep)
+      end
+      output:append(text)
+    end
+    output:append(padding)
   end
 
   self._output = output

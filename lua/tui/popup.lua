@@ -45,9 +45,11 @@ function Popup.new(opts)
   obj._config = opts.config
   obj.top_border_text = PopupBorderText.new({
     config = opts.config,
+    popup = obj,
   })
   obj.bottom_border_text = PopupBorderText.new({
     config = opts.config,
+    popup = obj,
   })
 
   obj.top_border_text:on_render(function(output)
@@ -57,12 +59,22 @@ function Popup.new(opts)
     obj.border:set_text("bottom", output, "left")
   end)
 
+  local set_border_hl = function(hl_group)
+    obj.border:set_highlight(hl_group)
+  end
+
   -- Border highlight control
   obj:on(NuiEvent.BufEnter, function()
-    obj.border:set_highlight(config.highlight_groups.border.active)
+    local hl_group = config.highlight_groups.border.active
+    ---@cast hl_group string
+
+    set_border_hl(hl_group)
   end)
   obj:on(NuiEvent.BufLeave, function()
-    obj.border:set_highlight(config.highlight_groups.border.inactive)
+    local hl_group = config.highlight_groups.border.inactive
+    ---@cast hl_group string
+
+    set_border_hl(hl_group)
   end)
 
   return obj
