@@ -4,10 +4,13 @@ local opts_utils = require("utils.opts")
 local tbl_utils = require("utils.table")
 local terminal_utils = require("utils.terminal")
 local file_utils = require("utils.files")
+local PopupBorderText = require("tui.popup-border-text")
 
 ---@class TUIPopup: NuiPopup
 ---@field _config TUIConfig
 ---@field _tui_keymaps table<string, string> Mappings of key to name (of the handler)
+---@field top_border_text TUIPopupBorderText
+---@field bottom_border_text TUIPopupBorderText
 local Popup = {}
 Popup.__index = Popup
 Popup.__is_class = true
@@ -40,6 +43,19 @@ function Popup.new(opts)
 
   obj._tui_keymaps = {}
   obj._config = opts.config
+  obj.top_border_text = PopupBorderText.new({
+    config = opts.config,
+  })
+  obj.bottom_border_text = PopupBorderText.new({
+    config = opts.config,
+  })
+
+  obj.top_border_text:on_render(function(output)
+    obj.border:set_text("top", output, "left")
+  end)
+  obj.bottom_border_text:on_render(function(output)
+    obj.border:set_text("bottom", output, "left")
+  end)
 
   -- Border highlight control
   obj:on(NuiEvent.BufEnter, function()
