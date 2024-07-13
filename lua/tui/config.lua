@@ -15,11 +15,19 @@ local opts_utils = require("utils.opts")
 ---@field move_to_pane TUIKeymapsConfig.move_to_pane?
 ---@field copy_filepath_to_clipboard string?
 
+---@class TUIHighlightGroupsConfig.border
+---@field active string?
+---@field inactive string?
+
+---@class TUIHighlightGroupsConfig
+---@field border TUIHighlightGroupsConfig.border?
+
 ---@class TUIConfig.config
 ---@field keymaps TUIKeymapsConfig?
 ---@field default_extra_args ShellOpts?
 ---@field default_extra_env_vars ShellOpts?
 ---@field notifier TUINotifierConfig?
+---@field highlight_groups TUIHighlightGroupsConfig?
 
 -- A singleton class to store the configuration
 --
@@ -52,6 +60,12 @@ local default_config = {
   },
   default_extra_args = {},
   default_extra_env_vars = {},
+  highlight_groups = {
+    border = {
+      active = "TUIBorderActive",
+      inactive = "TUIBorderInactive",
+    },
+  },
 }
 
 ---@return TUIConfig

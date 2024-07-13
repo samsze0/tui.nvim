@@ -5,39 +5,49 @@ local tbl_utils = require("utils.table")
 local terminal_utils = require("utils.terminal")
 local file_utils = require("utils.files")
 
----@type nui_popup_options
-local popup_opts = {
-  focusable = true,
-  border = {
-    style = "rounded",
-    text = {
-      top = "",  -- Border text would not show if this is undefined
-      bottom = "",
-    },
-  },
-  win_options = {
-    winblend = 0,
-    winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
-  },
-}
-
 ---@class TUIPopup: NuiPopup
+---@field _config TUIConfig
 ---@field _tui_keymaps table<string, string> Mappings of key to name (of the handler)
 local Popup = {}
 Popup.__index = Popup
 Popup.__is_class = true
 setmetatable(Popup, { __index = NuiPopup })
 
----@param opts? nui_popup_options
+---@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
 ---@return TUIPopup
 function Popup.new(opts)
-  opts = opts_utils.deep_extend(popup_opts, opts)
+  local config = opts.config.value
 
-  local obj = NuiPopup(opts)
+  ---@type nui_popup_options
+  local popup_opts = {
+    focusable = true,
+    border = {
+      style = "rounded",
+      text = {
+        top = "",  -- Border text would not show if this is undefined
+        bottom = "",
+      },
+    },
+    win_options = {
+      winblend = 0,
+      winhighlight = ("Normal:Normal,FloatBorder:%s"):format(config.highlight_groups.border.inactive),
+    },
+  }
+
+  local obj = NuiPopup(opts_utils.deep_extend(popup_opts, opts.popup_opts))
   setmetatable(obj, Popup)
   ---@cast obj TUIPopup
 
   obj._tui_keymaps = {}
+  obj._config = opts.config
+
+  -- Border highlight control
+  obj:on(NuiEvent.BufEnter, function()
+    obj.border:set_highlight(config.highlight_groups.border.active)
+  end)
+  obj:on(NuiEvent.BufLeave, function()
+    obj.border:set_highlight(config.highlight_groups.border.inactive)
+  end)
 
   return obj
 end
@@ -55,19 +65,21 @@ MainPopup.__index = MainPopup
 MainPopup.__is_class = true
 setmetatable(MainPopup, { __index = Popup })
 
----@param config? nui_popup_options
+---@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
 ---@return TUIMainPopup
-function MainPopup.new(config)
-  config = opts_utils.deep_extend({
-    enter = false, -- This can mute BufEnter event
-    buf_options = {
-      modifiable = false,
-      filetype = "tui",
-    },
-    win_options = {},
-  }, config)
+function MainPopup.new(opts)
+  opts = opts_utils.deep_extend({
+    popup_opts = {
+      enter = false, -- This can mute BufEnter event
+      buf_options = {
+        modifiable = false,
+        filetype = "tui",
+      },
+      win_options = {}, 
+    }
+  }, opts)
 
-  local obj = Popup.new(config)
+  local obj = Popup.new(opts)
   setmetatable(obj, MainPopup)
   ---@cast obj TUIMainPopup
 
@@ -118,17 +130,19 @@ SidePopup.__index = SidePopup
 SidePopup.__is_class = true
 setmetatable(SidePopup, { __index = Popup })
 
----@param opts? nui_popup_options
+---@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
 ---@return TUISidePopup
 function SidePopup.new(opts)
   opts = opts_utils.deep_extend({
-    buf_options = {
-      modifiable = true,
-    },
-    win_options = {
-      number = false,
-      wrap = false,
-    },
+    popup_opts = {
+      buf_options = {
+        modifiable = true,
+      },
+      win_options = {
+        number = false,
+        wrap = false,
+      },
+    }
   }, opts)
 
   local obj = Popup.new(opts)
@@ -221,24 +235,23 @@ HelpPopup.__index = HelpPopup
 HelpPopup.__is_class = true
 setmetatable(HelpPopup, { __index = Popup })
 
----@type nui_popup_options
-local help_popup_opts = {
-  win_options = {
-    wrap = true,
-  },
-  relative = "editor",
-  position = "50%",
-  size = {
-    width = "75%",
-    height = "75%",
-  },
-  zindex = 50,
-}
-
----@param opts? nui_popup_options
+---@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
 ---@return TUIHelpPopup
 function HelpPopup.new(opts)
-  opts = opts_utils.deep_extend(help_popup_opts, opts)
+  opts = opts_utils.deep_extend({
+    popup_opts = {
+      win_options = {
+        wrap = true,
+      },
+      relative = "editor",
+      position = "50%",
+      size = {
+        width = "75%",
+        height = "75%",
+      },
+      zindex = 50,
+    }
+  }, opts)
 
   local obj = Popup.new(opts)
   setmetatable(obj, HelpPopup)

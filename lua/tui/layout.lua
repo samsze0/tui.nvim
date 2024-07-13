@@ -131,8 +131,12 @@ function SinglePaneLayout.new(opts)
     },
   }, opts)
 
-  if not opts.main_popup then opts.main_popup = MainPopup.new() end
-  if not opts.help_popup then opts.help_popup = HelpPopup.new() end
+  if not opts.main_popup then opts.main_popup = MainPopup.new({
+    config = opts.config,
+  }) end
+  if not opts.help_popup then opts.help_popup = HelpPopup.new({
+    config = opts.config,
+  }) end
 
   local layout_config = {
     default = opts.layout_config.default(opts.main_popup, opts.help_popup),
@@ -205,9 +209,15 @@ function DualPaneLayout.new(opts)
     },
   }, opts)
 
-  if not opts.main_popup then opts.main_popup = MainPopup.new() end
-  if not opts.side_popup then opts.side_popup = SidePopup.new() end
-  if not opts.help_popup then opts.help_popup = HelpPopup.new() end
+  if not opts.main_popup then opts.main_popup = MainPopup.new({
+    config = opts.config,
+  }) end
+  if not opts.side_popup then opts.side_popup = SidePopup.new({
+    config = opts.config,
+  }) end
+  if not opts.help_popup then opts.help_popup = HelpPopup.new({
+    config = opts.config,
+  }) end
 
   local layout_config = {
     default = opts.layout_config.default(
@@ -333,15 +343,23 @@ function TriplePaneLayout.new(opts)
     },
   }, opts)
 
-  if not opts.main_popup then opts.main_popup = MainPopup.new() end
+  if not opts.main_popup then opts.main_popup = MainPopup.new({
+    config = opts.config,
+  }) end
   -- TODO
   if not opts.side_popups then
     opts.side_popups = {
-      left = SidePopup.new(),
-      right = SidePopup.new(),
+      left = SidePopup.new({
+        config = opts.config,
+      }),
+      right = SidePopup.new({
+        config = opts.config,
+      }),
     }
   end
-  if not opts.help_popup then opts.help_popup = HelpPopup.new() end
+  if not opts.help_popup then opts.help_popup = HelpPopup.new({
+    config = opts.config,
+  }) end
 
   local layout_config = {
     default = opts.layout_config.default(
@@ -490,15 +508,23 @@ function TriplePane2ColumnLayout.new(opts)
     },
   }, opts)
 
-  if not opts.main_popup then opts.main_popup = MainPopup.new() end
+  if not opts.main_popup then opts.main_popup = MainPopup.new({
+    config = opts.config,
+  }) end
   -- TODO
   if not opts.side_popups then
     opts.side_popups = {
-      top = SidePopup.new(),
-      bottom = SidePopup.new(),
+      top = SidePopup.new({
+        config = opts.config,
+      }),
+      bottom = SidePopup.new({
+        config = opts.config,
+      }),
     }
   end
-  if not opts.help_popup then opts.help_popup = HelpPopup.new() end
+  if not opts.help_popup then opts.help_popup = HelpPopup.new({
+    config = opts.config,
+  }) end
 
   local layout_config = {
     default = opts.layout_config.default(
