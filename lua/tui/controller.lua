@@ -162,7 +162,7 @@ function Controller:_start(opts)
       else
         error("Unexpected exit code: " .. code)
       end
-    end
+    end,
   }, opts)
 
   self:show_and_focus()

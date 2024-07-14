@@ -82,9 +82,7 @@ function PopupBorderText:prepend(section)
   local component = PopupBorderTextComponent.new()
   table.insert(self._components[section], 1, component)
 
-  component:on_render(function(output)
-    self:_render()
-  end)
+  component:on_render(function(output) self:_render() end)
 
   return component
 end
@@ -95,26 +93,24 @@ function PopupBorderText:append(section)
   local component = PopupBorderTextComponent.new()
   table.insert(self._components[section], component)
 
-  component:on_render(function(output)
-    self:_render()
-  end)
+  component:on_render(function(output) self:_render() end)
 
   return component
 end
 
 function PopupBorderText:_render()
-  if not self._popup.winid then
-    return
-  end
+  if not self._popup.winid then return end
 
   local output = NuiLine()
 
-  local left_texts = tbl_utils.map(self._components[Section.left], function(_, c)
-    return c.output
-  end)
-  local right_texts = tbl_utils.map(self._components[Section.right], function(_, c)
-    return c.output
-  end)
+  local left_texts = tbl_utils.map(
+    self._components[Section.left],
+    function(_, c) return c.output end
+  )
+  local right_texts = tbl_utils.map(
+    self._components[Section.right],
+    function(_, c) return c.output end
+  )
 
   -- TODO: make these char configurable
   local padding = " "
@@ -147,14 +143,14 @@ function PopupBorderText:_render()
     total_right_width = right_width + (#right_texts - 1) * #sep + #padding * 2
   end
 
-  local remaining_width = vim.api.nvim_win_get_width(self._popup.winid) - total_left_width - total_right_width
+  local remaining_width = vim.api.nvim_win_get_width(self._popup.winid)
+    - total_left_width
+    - total_right_width
 
   if left_width > 0 then
     output:append(padding)
     for i, text in ipairs(left_texts) do
-      if i < #left_texts then
-        output:append(sep)
-      end
+      if i < #left_texts then output:append(sep) end
       output:append(text)
     end
     output:append(padding)
@@ -167,9 +163,7 @@ function PopupBorderText:_render()
   if right_width > 0 then
     output:append(padding)
     for i, text in ipairs(right_texts) do
-      if i < #right_texts then
-        output:append(sep)
-      end
+      if i < #right_texts then output:append(sep) end
       output:append(text)
     end
     output:append(padding)

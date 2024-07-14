@@ -27,13 +27,15 @@ function Popup.new(opts)
     border = {
       style = "rounded",
       text = {
-        top = "",  -- Border text would not show if this is undefined
+        top = "", -- Border text would not show if this is undefined
         bottom = "",
       },
     },
     win_options = {
       winblend = 0,
-      winhighlight = ("Normal:Normal,FloatBorder:%s"):format(config.highlight_groups.border.inactive),
+      winhighlight = ("Normal:Normal,FloatBorder:%s"):format(
+        config.highlight_groups.border.inactive
+      ),
     },
   }
 
@@ -52,16 +54,14 @@ function Popup.new(opts)
     popup = obj,
   })
 
-  obj.top_border_text:on_render(function(output)
-    obj.border:set_text("top", output, "left")
-  end)
-  obj.bottom_border_text:on_render(function(output)
-    obj.border:set_text("bottom", output, "left")
-  end)
+  obj.top_border_text:on_render(
+    function(output) obj.border:set_text("top", output, "left") end
+  )
+  obj.bottom_border_text:on_render(
+    function(output) obj.border:set_text("bottom", output, "left") end
+  )
 
-  local set_border_hl = function(hl_group)
-    obj.border:set_highlight(hl_group)
-  end
+  local set_border_hl = function(hl_group) obj.border:set_highlight(hl_group) end
 
   -- Border highlight control
   obj:on(NuiEvent.BufEnter, function()
@@ -103,8 +103,8 @@ function MainPopup.new(opts)
         modifiable = false,
         filetype = "tui",
       },
-      win_options = {}, 
-    }
+      win_options = {},
+    },
   }, opts)
 
   local obj = Popup.new(opts)
@@ -170,7 +170,7 @@ function SidePopup.new(opts)
         number = false,
         wrap = false,
       },
-    }
+    },
   }, opts)
 
   local obj = Popup.new(opts)
@@ -231,7 +231,6 @@ function SidePopup:show_file_content(path, opts)
     return false
   end
 
-  
   local filetype = file_utils.get_filetype(path)
   if filetype then
     if tbl_utils.contains(opts.exclude_filetypes, filetype) then
@@ -248,7 +247,7 @@ function SidePopup:show_file_content(path, opts)
     return false
   end
 
-  local lines = file_utils.read_file(path, { binary = true })  -- Read in binary mode to avoid extra CR being trimmed
+  local lines = file_utils.read_file(path, { binary = true }) -- Read in binary mode to avoid extra CR being trimmed
 
   self:set_lines(lines, { cursor_pos = opts.cursor_pos })
   vim.bo[self.bufnr].filetype = filetype or ""
@@ -286,7 +285,7 @@ function HelpPopup.new(opts)
         height = "75%",
       },
       zindex = 50,
-    }
+    },
   }, opts)
 
   local obj = Popup.new(opts)
