@@ -5,6 +5,7 @@ local tbl_utils = require("utils.table")
 local terminal_utils = require("utils.terminal")
 local file_utils = require("utils.files")
 local PopupBorderText = require("tui.popup-border-text")
+local winhighlight_utils = require("utils.winhighlight")
 
 ---@class TUIPopup: NuiPopup
 ---@field _config TUIConfig
@@ -33,13 +34,19 @@ function Popup.new(opts)
     },
     win_options = {
       winblend = 0,
-      winhighlight = ("Normal:Normal,FloatBorder:%s"):format(
-        config.highlight_groups.border.inactive
-      ),
     },
   }
 
-  local obj = NuiPopup(opts_utils.deep_extend(popup_opts, opts.popup_opts))
+  popup_opts = opts_utils.deep_extend(popup_opts, opts.popup_opts)
+  
+  local win_hl = opts_utils.extend({
+    Normal = "Normal",
+    FloatBorder = config.highlight_groups.border.inactive
+  }, winhighlight_utils.from_str(popup_opts.win_options.winhighlight))
+
+  popup_opts.win_options.winhighlight = winhighlight_utils.to_str(win_hl)
+
+  local obj = NuiPopup(popup_opts)
   setmetatable(obj, Popup)
   ---@cast obj TUIPopup
 
