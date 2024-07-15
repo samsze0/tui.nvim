@@ -19,7 +19,7 @@ local str_utils = require("utils.string")
 ---@field _extra_env_vars? ShellOpts Extra environment variables to pass to tui
 ---@field _prev_win? integer Previous window before opening tui
 ---@field _on_exited_subscribers TUICallbackMap Map of subscribers of the exit event
----@field status "pending" | "started" | "running" | "exited" | "destroyed" The status of the controller
+---@field status "pending" | "running" | "exited" | "destroyed" The status of the controller
 ---@field _job_id string Job ID of the tui process
 local Controller = {}
 Controller.__index = Controller
@@ -210,7 +210,7 @@ function Controller:send(payload) error("Not implemented") end
 ---@return fun(): nil Unsubscribe
 function Controller:subscribe(event, callback) error("Not implemented") end
 
-function Controller:started() return self.status == "started" end
+function Controller:started() return self.status == "running" end
 
 function Controller:exited() return self.status == "exited" end
 
