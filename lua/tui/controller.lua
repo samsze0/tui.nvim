@@ -210,9 +210,11 @@ function Controller:send(payload) error("Not implemented") end
 ---@return fun(): nil Unsubscribe
 function Controller:subscribe(event, callback) error("Not implemented") end
 
-function Controller:started() return self.status == "running" end
+function Controller:started() return self.status ~= "pending" end
 
-function Controller:exited() return self.status == "exited" end
+function Controller:exited()
+  return self.status == "exited" or self.status == "destroyed"
+end
 
 -- Subscribe to the event "exited"
 --
