@@ -169,14 +169,23 @@ function Controller:_start(opts)
 
   local job_id = vim.fn.termopen(opts.command, {
     on_exit = function(job_id, code, event)
-      if self.status ~= "running" then return end
+      xpcall(
+        function()
+          if self.status ~= "running" then return end
 
-      self.status = "exited"
-      self._on_exited_subscribers:invoke_all()
+          self.status = "exited"
+          self._on_exited_subscribers:invoke_all()
 
-      opts.exit_code_handler(code)
+          opts.exit_code_handler(code)
 
-      self:_destroy()
+          self:_destroy()
+        end,
+        function(err)
+          self._config.value.notifier.error(
+            debug.traceback("An error occurred during on_exit: " .. err)
+          )
+        end
+      )
     end,
     on_stdout = function(job_id, ...) end,
     on_stderr = function(job_id, ...) end,
