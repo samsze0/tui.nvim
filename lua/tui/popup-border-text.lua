@@ -103,14 +103,26 @@ function PopupBorderText:_render()
 
   local output = NuiLine()
 
-  local left_texts = tbl_utils.map(
-    self._components[Section.left],
-    function(_, c) return c.output end
-  )
-  local right_texts = tbl_utils.map(
-    self._components[Section.right],
-    function(_, c) return c.output end
-  )
+  ---@param section TUIPopupBorderText.section
+  ---@return (string | NuiText)[]
+  local collect_texts = function(section)
+    return tbl_utils.filter(
+      tbl_utils.map(
+        self._components[section],
+        function(_, c) return c.output end
+      ),
+      function(_, t)
+        if type(t) == "string" then
+          return #t > 0
+        else
+          return t:length() > 0
+        end
+      end
+    )
+  end
+
+  local left_texts = collect_texts(Section.left)
+  local right_texts = collect_texts(Section.right)
 
   -- TODO: make these char configurable
   local padding = " "
@@ -150,8 +162,8 @@ function PopupBorderText:_render()
   if left_width > 0 then
     output:append(padding)
     for i, text in ipairs(left_texts) do
-      if i < #left_texts then output:append(sep) end
       output:append(text)
+      if i < #left_texts then output:append(sep) end
     end
     output:append(padding)
   end
@@ -163,8 +175,8 @@ function PopupBorderText:_render()
   if right_width > 0 then
     output:append(padding)
     for i, text in ipairs(right_texts) do
-      if i < #right_texts then output:append(sep) end
       output:append(text)
+      if i < #right_texts then output:append(sep) end
     end
     output:append(padding)
   end
