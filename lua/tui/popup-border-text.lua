@@ -82,7 +82,7 @@ function PopupBorderText:prepend(section)
   local component = PopupBorderTextComponent.new()
   table.insert(self._components[section], 1, component)
 
-  component:on_render(function(output) self:_render() end)
+  component:on_render(function(output) self:render() end)
 
   return component
 end
@@ -93,12 +93,12 @@ function PopupBorderText:append(section)
   local component = PopupBorderTextComponent.new()
   table.insert(self._components[section], component)
 
-  component:on_render(function(output) self:_render() end)
+  component:on_render(function(output) self:render() end)
 
   return component
 end
 
-function PopupBorderText:_render()
+function PopupBorderText:render()
   if not self._popup.winid then return end
 
   local output = NuiLine()

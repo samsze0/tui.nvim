@@ -96,6 +96,10 @@ function Layout:maximise_popup(popup, opts)
         p.should_show = true
       end
       self:update(self._layout_config(self))
+      for _, p in ipairs(all_popups) do
+        p.top_border_text:render()
+        p.bottom_border_text:render()
+      end
       return
     end
   end
@@ -105,6 +109,10 @@ function Layout:maximise_popup(popup, opts)
   end
   popup.should_show = true
   self:update(self._layout_config(self))
+  for _, p in ipairs(all_popups) do
+    p.top_border_text:render()
+    p.bottom_border_text:render()
+  end
 end
 
 function Layout:_setup_move_keymaps()
