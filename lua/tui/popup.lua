@@ -7,12 +7,25 @@ local file_utils = require("utils.files")
 local PopupBorderText = require("tui.popup-border-text")
 local winhighlight_utils = require("utils.winhighlight")
 
+-- TODO: move isinstance function to oop utils
+local function is_instance(o, class)
+  while o do
+    o = getmetatable(o)
+    if class == o then return true end
+  end
+  return false
+end
+
 ---@class TUIPopup: NuiPopup
 ---@field _config TUIConfig
 ---@field _tui_keymaps table<string, string> Mappings of key to name (of the handler)
 ---@field top_border_text TUIPopupBorderText
 ---@field bottom_border_text TUIPopupBorderText
 ---@field should_show boolean
+---@field left? TUIPopup
+---@field right? TUIPopup
+---@field up? TUIPopup
+---@field down? TUIPopup
 local Popup = {}
 Popup.__index = Popup
 Popup.__is_class = true
@@ -124,42 +137,6 @@ function MainPopup.new(opts)
   obj:on(NuiEvent.BufEnter, function() vim.cmd("startinsert!") end)
 
   return obj
-end
-
--- TODO: move map and map_remote to Popup
-
----@param key string
----@param name? string Purpose of the handler
----@param handler fun()
----@param opts? { force?: boolean }
-function MainPopup:map(key, name, handler, opts)
-  opts = opts_utils.extend({ force = false }, opts)
-  name = name or "?"
-
-  if self._tui_keymaps[key] and not opts.force then
-    error(
-      ("Key %s is already mapped to %s"):format(key, self._tui_keymaps[key])
-    )
-    return
-  end
-  NuiPopup.map(self, "t", key, handler)
-  self._tui_keymaps[key] = name
-end
-
----@param popup TUISidePopup
----@param key string
----@param name? string Purpose of the handler
----@param opts? { force?: boolean }
-function MainPopup:map_remote(popup, name, key, opts)
-  self:map(key, name, function()
-    -- Looks like window doesn't get redrawn if we don't switch to it
-    -- vim.api.nvim_win_call(popup.winid, function() vim.api.nvim_input(key) end)
-
-    vim.api.nvim_set_current_win(popup.winid)
-    vim.api.nvim_input(key)
-    -- Because nvim_input is non-blocking, so we need to schedule the switch such that the switch happens after the input
-    vim.schedule(function() vim.api.nvim_set_current_win(self.winid) end)
-  end, opts)
 end
 
 ---@class TUISidePopup: TUIPopup
@@ -321,6 +298,42 @@ function HelpPopup:set_keymaps(keymaps)
   )
   items = tbl_utils.sort(items, function(a, b) return a < b end)
   self:set_lines(items)
+end
+
+---@param key string
+---@param name? string Purpose of the handler
+---@param handler fun()
+---@param opts? { force?: boolean }
+function Popup:map(key, name, handler, opts)
+  opts = opts_utils.extend({ force = false }, opts)
+  name = name or "?"
+
+  local mode = is_instance(self, MainPopup) and "t" or "n"
+
+  if self._tui_keymaps[key] and not opts.force then
+    error(
+      ("Key %s is already mapped to %s"):format(key, self._tui_keymaps[key])
+    )
+    return
+  end
+  NuiPopup.map(self, mode, key, handler)
+  self._tui_keymaps[key] = name
+end
+
+---@param popup TUISidePopup
+---@param key string
+---@param name? string Purpose of the handler
+---@param opts? { force?: boolean }
+function Popup:map_remote(popup, name, key, opts)
+  self:map(key, name, function()
+    -- Looks like window doesn't get redrawn if we don't switch to it
+    -- vim.api.nvim_win_call(popup.winid, function() vim.api.nvim_input(key) end)
+
+    vim.api.nvim_set_current_win(popup.winid)
+    vim.api.nvim_input(key)
+    -- Because nvim_input is non-blocking, so we need to schedule the switch such that the switch happens after the input
+    vim.schedule(function() vim.api.nvim_set_current_win(self.winid) end)
+  end, opts)
 end
 
 return {

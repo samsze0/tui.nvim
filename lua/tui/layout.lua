@@ -51,6 +51,8 @@ function Layout.new(opts)
   obj.side_popups = opts.side_popups
   obj.help_popup = opts.help_popup
 
+  obj:_setup_move_keymaps()
+
   return obj
 end
 
@@ -70,15 +72,6 @@ function Layout:restore()
   self:update(self._layout_config(self))
 end
 
--- TODO: move isinstance function to oop utils
-local function is_instance(o, class)
-  while o do
-    o = getmetatable(o)
-    if class == o then return true end
-  end
-  return false
-end
-
 ---@param popup TUIPopup
 function Layout:maximise_popup(popup)
   -- Check if popup belongs to layout
@@ -92,6 +85,21 @@ function Layout:maximise_popup(popup)
   end
   popup.should_show = true
   self:update(self._layout_config(self))
+end
+
+function Layout:_setup_move_keymaps()
+  local keymaps = self._config.value.keymaps.move_to_pane
+  for _, popup in ipairs(self:all_popups()) do
+    for direction, key in pairs(keymaps) do
+      popup:map(key, "Move to " .. direction, function()
+        local neighbour = popup[direction]
+        if neighbour then
+          ---@cast neighbour TUIPopup
+          neighbour:focus()
+        end
+      end)
+    end
+  end
 end
 
 return Layout
