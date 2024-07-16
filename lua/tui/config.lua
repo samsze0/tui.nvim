@@ -13,6 +13,7 @@ local opts_utils = require("utils.opts")
 
 ---@class TUIKeymapsConfig
 ---@field move_to_pane TUIKeymapsConfig.move_to_pane?
+---@field maximise string?
 ---@field copy_filepath_to_clipboard string?
 
 ---@class TUIHighlightGroupsConfig.border
@@ -57,6 +58,7 @@ local default_config = {
       right = "<C-f>",
     },
     copy_filepath_to_clipboard = "<C-y>",
+    toggle_maximise = "<C-z>",
   },
   default_extra_args = {},
   default_extra_env_vars = {},

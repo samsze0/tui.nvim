@@ -21,7 +21,6 @@ local layout_opts = {
 ---@field main_popup TUIMainPopup
 ---@field side_popups table<string, TUISidePopup>
 ---@field help_popup TUIHelpPopup
----@field maximise_popup fun(self: TUILayout, popup: TUIPopup)
 ---@field restore fun(self: TUILayout)
 ---@field _layout_config TUILayout.layout_config
 local Layout = {}
@@ -52,11 +51,14 @@ function Layout.new(opts)
   obj.help_popup = opts.help_popup
 
   obj:_setup_move_keymaps()
+  obj:_setup_maximise_keymaps()
 
   return obj
 end
 
 -- All popups but help_popup
+--
+---@return TUIPopup[]
 function Layout:all_popups()
   return {
     self.main_popup,
@@ -73,11 +75,29 @@ function Layout:restore()
 end
 
 ---@param popup TUIPopup
-function Layout:maximise_popup(popup)
+---@param opts? { toggle?: boolean }
+function Layout:maximise_popup(popup, opts)
+  opts = opts or {}
+
   -- Check if popup belongs to layout
   local all_popups = self:all_popups()
   if not tbl_utils.any(all_popups, function(_, p) return p == popup end) then
     error("Popup does not belong to layout")
+  end
+
+  -- Check if any popup is maximised, if so, check if it's the same popup
+  if opts.toggle then
+    local maximised_popups = tbl_utils.filter(
+      all_popups,
+      function(_, p) return p.should_show end
+    )
+    if #maximised_popups == 1 and maximised_popups[1] == popup then
+      for _, p in ipairs(all_popups) do
+        p.should_show = true
+      end
+      self:update(self._layout_config(self))
+      return
+    end
   end
 
   for _, p in ipairs(all_popups) do
@@ -99,6 +119,16 @@ function Layout:_setup_move_keymaps()
         end
       end)
     end
+  end
+end
+
+function Layout:_setup_maximise_keymaps()
+  for _, popup in ipairs(self:all_popups()) do
+    popup:map(
+      self._config.value.keymaps.toggle_maximise,
+      "Toggle maximise",
+      function() self:maximise_popup(popup, { toggle = true }) end
+    )
   end
 end
 
