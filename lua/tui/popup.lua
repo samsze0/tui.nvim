@@ -12,6 +12,7 @@ local winhighlight_utils = require("utils.winhighlight")
 ---@field _tui_keymaps table<string, string> Mappings of key to name (of the handler)
 ---@field top_border_text TUIPopupBorderText
 ---@field bottom_border_text TUIPopupBorderText
+---@field should_show boolean
 local Popup = {}
 Popup.__index = Popup
 Popup.__is_class = true
@@ -38,10 +39,10 @@ function Popup.new(opts)
   }
 
   popup_opts = opts_utils.deep_extend(popup_opts, opts.popup_opts)
-  
+
   local win_hl = opts_utils.extend({
     Normal = "Normal",
-    FloatBorder = config.highlight_groups.border.inactive
+    FloatBorder = config.highlight_groups.border.inactive,
   }, winhighlight_utils.from_str(popup_opts.win_options.winhighlight))
 
   popup_opts.win_options.winhighlight = winhighlight_utils.to_str(win_hl)
@@ -49,6 +50,8 @@ function Popup.new(opts)
   local obj = NuiPopup(popup_opts)
   setmetatable(obj, Popup)
   ---@cast obj TUIPopup
+
+  obj.should_show = true
 
   obj._tui_keymaps = {}
   obj._config = opts.config
