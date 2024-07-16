@@ -8,13 +8,13 @@ local PopupBorderText = require("tui.popup-border-text")
 local winhighlight_utils = require("utils.winhighlight")
 
 -- TODO: move isinstance function to oop utils
-local function is_instance(o, class)
-  while o do
-    o = getmetatable(o)
-    if class == o then return true end
-  end
-  return false
-end
+-- local function is_instance(o, class)
+--   while o do
+--     o = getmetatable(o)
+--     if class == o then return true end
+--   end
+--   return false
+-- end
 
 ---@class TUIPopup: NuiPopup
 ---@field _config TUIConfig
@@ -29,6 +29,7 @@ end
 local Popup = {}
 Popup.__index = Popup
 Popup.__is_class = true
+Popup.__name = "Popup"
 setmetatable(Popup, { __index = NuiPopup })
 
 ---@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
@@ -114,6 +115,7 @@ function Popup:keymaps() return self._tui_keymaps end
 local MainPopup = {}
 MainPopup.__index = MainPopup
 MainPopup.__is_class = true
+MainPopup.__name = "MainPopup"
 setmetatable(MainPopup, { __index = Popup })
 
 ---@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
@@ -143,6 +145,7 @@ end
 local SidePopup = {}
 SidePopup.__index = SidePopup
 SidePopup.__is_class = true
+MainPopup.__name = "SidePopup"
 setmetatable(SidePopup, { __index = Popup })
 
 ---@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
@@ -300,15 +303,14 @@ function HelpPopup:set_keymaps(keymaps)
   self:set_lines(items)
 end
 
+---@param mode string
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param handler fun()
 ---@param opts? { force?: boolean }
-function Popup:map(key, name, handler, opts)
+function Popup:_map(mode, key, name, handler, opts)
   opts = opts_utils.extend({ force = false }, opts)
   name = name or "?"
-
-  local mode = is_instance(self, MainPopup) and "t" or "n"
 
   if self._tui_keymaps[key] and not opts.force then
     error(
@@ -320,12 +322,13 @@ function Popup:map(key, name, handler, opts)
   self._tui_keymaps[key] = name
 end
 
+---@param mode string
 ---@param popup TUISidePopup
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
-function Popup:map_remote(popup, name, key, opts)
-  self:map(key, name, function()
+function Popup:_map_remote(mode, popup, name, key, opts)
+  self:_map(mode, key, name, function()
     -- Looks like window doesn't get redrawn if we don't switch to it
     -- vim.api.nvim_win_call(popup.winid, function() vim.api.nvim_input(key) end)
 
@@ -334,6 +337,37 @@ function Popup:map_remote(popup, name, key, opts)
     -- Because nvim_input is non-blocking, so we need to schedule the switch such that the switch happens after the input
     vim.schedule(function() vim.api.nvim_set_current_win(self.winid) end)
   end, opts)
+end
+
+---@param key string
+---@param name? string Purpose of the handler
+---@param handler fun()
+---@param opts? { force?: boolean }
+function MainPopup:map(key, name, handler, opts)
+  self:_map("t", key, name, handler, opts)
+end
+
+---@param popup TUISidePopup
+---@param key string
+---@param name? string Purpose of the handler
+---@param opts? { force?: boolean }
+function MainPopup:map_remote(popup, key, name, opts)
+  self:_map_remote("t", popup, name, key, opts)
+end
+
+---@param name? string Purpose of the handler
+---@param handler fun()
+---@param opts? { force?: boolean }
+function SidePopup:map(key, name, handler, opts)
+  self:_map("n", key, name, handler, opts)
+end
+
+---@param popup TUISidePopup
+---@param key string
+---@param name? string Purpose of the handler
+---@param opts? { force?: boolean }
+function SidePopup:map_remote(popup, key, name, opts)
+  self:_map_remote("n", popup, name, key, opts)
 end
 
 return {
