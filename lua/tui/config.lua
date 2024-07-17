@@ -1,4 +1,5 @@
 local opts_utils = require("utils.opts")
+local oop_utils = require("utils.oop")
 
 ---@class TUINotifierConfig
 ---@field info fun(message: string)?
@@ -34,12 +35,10 @@ local opts_utils = require("utils.opts")
 --
 ---@class TUIConfig
 ---@field value TUIConfig.config
-local Config = {}
-Config.__index = Config
-Config.__is_class = true
+local TUIConfig = oop_utils.create_class()
 
 ---@param config? TUIConfig.config
-function Config:setup(config)
+function TUIConfig:setup(config)
   self.value = opts_utils.deep_extend(self.value, config)
 end
 
@@ -71,10 +70,10 @@ local default_config = {
 }
 
 ---@return TUIConfig
-function Config.new()
+function TUIConfig.new()
   return setmetatable({
     value = opts_utils.deep_extend({}, default_config),
-  }, Config)
+  }, TUIConfig)
 end
 
-return Config
+return TUIConfig

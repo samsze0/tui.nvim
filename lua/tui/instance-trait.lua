@@ -1,16 +1,14 @@
-local Controller = require("tui.controller")
+local TUIController = require("tui.controller")
+local oop_utils = require("utils.oop")
 
 -- A trait. Should not be inherited directly.
 --
 ---@class TUIInstanceTrait : TUIController
 ---@field layout TUILayout
-local Instance = {}
-Instance.__index = Instance
-Instance.__is_class = true
-setmetatable(Instance, { __index = Controller })
+local TUIInstanceTrait = oop_utils.create_class(TUIController)
 
 -- Configure controller UI hooks
-function Instance:setup_controller_ui_hooks()
+function TUIInstanceTrait:setup_controller_ui_hooks()
   self:set_ui_hooks({
     show = function() self.layout:show() end,
     hide = function() self.layout:hide() end,
@@ -19,4 +17,4 @@ function Instance:setup_controller_ui_hooks()
   })
 end
 
-return Instance
+return TUIInstanceTrait

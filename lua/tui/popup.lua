@@ -6,6 +6,7 @@ local terminal_utils = require("utils.terminal")
 local file_utils = require("utils.files")
 local PopupBorderText = require("tui.popup-border-text")
 local winhighlight_utils = require("utils.winhighlight")
+local oop_utils = require("utils.oop")
 
 -- TODO: move isinstance function to oop utils
 -- local function is_instance(o, class)
@@ -26,11 +27,7 @@ local winhighlight_utils = require("utils.winhighlight")
 ---@field right? TUIPopup
 ---@field up? TUIPopup
 ---@field down? TUIPopup
-local Popup = {}
-Popup.__index = Popup
-Popup.__is_class = true
-Popup.__name = "Popup"
-setmetatable(Popup, { __index = NuiPopup })
+local TUIPopup = oop_utils.new_class(NuiPopup)
 
 ---@class TUIPopup.constructor.opts
 ---@field popup_opts? nui_popup_options
@@ -38,7 +35,7 @@ setmetatable(Popup, { __index = NuiPopup })
 
 ---@param opts TUIPopup.constructor.opts
 ---@return TUIPopup
-function Popup.new(opts)
+function TUIPopup.new(opts)
   local config = opts.config.value
 
   ---@type nui_popup_options
@@ -66,7 +63,7 @@ function Popup.new(opts)
   popup_opts.win_options.winhighlight = winhighlight_utils.to_str(win_hl)
 
   local obj = NuiPopup(popup_opts)
-  setmetatable(obj, Popup)
+  setmetatable(obj, TUIPopup)
   ---@cast obj TUIPopup
 
   obj.should_show = true
@@ -108,25 +105,21 @@ function Popup.new(opts)
   return obj
 end
 
-function Popup:focus() vim.api.nvim_set_current_win(self.winid) end
+function TUIPopup:focus() vim.api.nvim_set_current_win(self.winid) end
 
 -- Get current mappings of keys to handler names
 --
 ---@return table<string, string>
-function Popup:keymaps() return self._tui_keymaps end
+function TUIPopup:keymaps() return self._tui_keymaps end
 
 ---@class TUIMainPopup: TUIPopup
-local MainPopup = {}
-MainPopup.__index = MainPopup
-MainPopup.__is_class = true
-MainPopup.__name = "MainPopup"
-setmetatable(MainPopup, { __index = Popup })
+local TUIMainPopup = oop_utils.new_class(TUIPopup)
 
 ---@class TUIMainPopup.constructor.opts : TUIPopup.constructor.opts
 
 ---@param opts TUIMainPopup.constructor.opts
 ---@return TUIMainPopup
-function MainPopup.new(opts)
+function TUIMainPopup.new(opts)
   opts = opts_utils.deep_extend({
     popup_opts = {
       enter = false, -- This can mute BufEnter event
@@ -138,8 +131,8 @@ function MainPopup.new(opts)
     },
   }, opts)
 
-  local obj = Popup.new(opts)
-  setmetatable(obj, MainPopup)
+  local obj = TUIPopup.new(opts)
+  setmetatable(obj, TUIMainPopup)
   ---@cast obj TUIMainPopup
 
   obj:on(NuiEvent.BufEnter, function() vim.cmd("startinsert!") end)
@@ -148,17 +141,13 @@ function MainPopup.new(opts)
 end
 
 ---@class TUISidePopup: TUIPopup
-local SidePopup = {}
-SidePopup.__index = SidePopup
-SidePopup.__is_class = true
-MainPopup.__name = "SidePopup"
-setmetatable(SidePopup, { __index = Popup })
+local TUISidePopup = oop_utils.new_class(TUIPopup)
 
 ---@class TUISidePopup.constructor.opts : TUIPopup.constructor.opts
 
 ---@param opts TUISidePopup.constructor.opts
 ---@return TUISidePopup
-function SidePopup.new(opts)
+function TUISidePopup.new(opts)
   opts = opts_utils.deep_extend({
     popup_opts = {
       buf_options = {
@@ -171,21 +160,21 @@ function SidePopup.new(opts)
     },
   }, opts)
 
-  local obj = Popup.new(opts)
-  setmetatable(obj, SidePopup)
+  local obj = TUIPopup.new(opts)
+  setmetatable(obj, TUISidePopup)
   ---@cast obj TUISidePopup
 
   return obj
 end
 
 ---@return string[]
-function SidePopup:get_lines()
+function TUISidePopup:get_lines()
   return vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, false)
 end
 
 ---@param lines string[]
 ---@param opts? { cursor_pos?: number[], filetype?: string }
-function SidePopup:set_lines(lines, opts)
+function TUISidePopup:set_lines(lines, opts)
   opts = opts_utils.extend({}, opts)
 
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, lines)
@@ -204,7 +193,7 @@ end
 ---@param path string
 ---@param opts? { cursor_pos?: number[], exclude_filetypes?: string[] }
 ---@return boolean success
-function SidePopup:show_file_content(path, opts)
+function TUISidePopup:show_file_content(path, opts)
   opts = opts_utils.extend({
     exclude_filetypes = {},
   }, opts)
@@ -255,7 +244,7 @@ end
 
 ---@param buf number
 ---@param opts? { cursor_pos?: number[] }
-function SidePopup:show_buf_content(buf, opts)
+function TUISidePopup:show_buf_content(buf, opts)
   opts = opts or {}
 
   local path = vim.api.nvim_buf_get_name(buf)
@@ -263,16 +252,13 @@ function SidePopup:show_buf_content(buf, opts)
 end
 
 ---@class TUIHelpPopup: TUIPopup
-local HelpPopup = {}
-HelpPopup.__index = HelpPopup
-HelpPopup.__is_class = true
-setmetatable(HelpPopup, { __index = Popup })
+local TUIHelpPopup = oop_utils.new_class(TUIPopup)
 
 ---@class HelpPopup.constructor.opts : TUIPopup.constructor.opts
 
 ---@param opts HelpPopup.constructor.opts
 ---@return TUIHelpPopup
-function HelpPopup.new(opts)
+function TUIHelpPopup.new(opts)
   opts = opts_utils.deep_extend({
     popup_opts = {
       win_options = {
@@ -288,8 +274,8 @@ function HelpPopup.new(opts)
     },
   }, opts)
 
-  local obj = Popup.new(opts)
-  setmetatable(obj, HelpPopup)
+  local obj = TUIPopup.new(opts)
+  setmetatable(obj, TUIHelpPopup)
   ---@cast obj TUIHelpPopup
 
   -- FIX: border text not showing
@@ -299,12 +285,12 @@ function HelpPopup.new(opts)
 end
 
 ---@param lines string[]
-function HelpPopup:set_lines(lines)
+function TUIHelpPopup:set_lines(lines)
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, lines)
 end
 
 ---@param keymaps table<string, string>
-function HelpPopup:set_keymaps(keymaps)
+function TUIHelpPopup:set_keymaps(keymaps)
   local items = tbl_utils.map(
     keymaps,
     function(key, name) return name .. " : " .. key end
@@ -318,7 +304,7 @@ end
 ---@param name? string Purpose of the handler
 ---@param handler fun()
 ---@param opts? { force?: boolean }
-function Popup:_map(mode, key, name, handler, opts)
+function TUIPopup:_map(mode, key, name, handler, opts)
   opts = opts_utils.extend({ force = false }, opts)
   name = name or "?"
 
@@ -337,7 +323,7 @@ end
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
-function Popup:_map_remote(mode, popup, name, key, opts)
+function TUIPopup:_map_remote(mode, popup, name, key, opts)
   self:_map(mode, key, name, function()
     -- Looks like window doesn't get redrawn if we don't switch to it
     -- vim.api.nvim_win_call(popup.winid, function() vim.api.nvim_input(key) end)
@@ -353,7 +339,7 @@ end
 ---@param name? string Purpose of the handler
 ---@param handler fun()
 ---@param opts? { force?: boolean }
-function MainPopup:map(key, name, handler, opts)
+function TUIMainPopup:map(key, name, handler, opts)
   self:_map("t", key, name, handler, opts)
 end
 
@@ -361,14 +347,14 @@ end
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
-function MainPopup:map_remote(popup, key, name, opts)
+function TUIMainPopup:map_remote(popup, key, name, opts)
   self:_map_remote("t", popup, name, key, opts)
 end
 
 ---@param name? string Purpose of the handler
 ---@param handler fun()
 ---@param opts? { force?: boolean }
-function SidePopup:map(key, name, handler, opts)
+function TUISidePopup:map(key, name, handler, opts)
   self:_map("n", key, name, handler, opts)
 end
 
@@ -376,13 +362,13 @@ end
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
-function SidePopup:map_remote(popup, key, name, opts)
+function TUISidePopup:map_remote(popup, key, name, opts)
   self:_map_remote("n", popup, name, key, opts)
 end
 
 return {
-  AbstractPopup = Popup,
-  MainPopup = MainPopup,
-  SidePopup = SidePopup,
-  HelpPopup = HelpPopup,
+  AbstractPopup = TUIPopup,
+  MainPopup = TUIMainPopup,
+  SidePopup = TUISidePopup,
+  HelpPopup = TUIHelpPopup,
 }

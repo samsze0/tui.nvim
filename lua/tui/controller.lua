@@ -1,9 +1,10 @@
 local uuid_utils = require("utils.uuid")
 local opts_utils = require("utils.opts")
 local tbl_utils = require("utils.table")
-local CallbackMap = require("tui.callback-map")
+local TUICallbackMap = require("tui.callback-map")
 local terminal_utils = require("utils.terminal")
 local str_utils = require("utils.string")
+local oop_utils = require("utils.oop")
 
 ---@alias TUIControllerId string
 ---@alias TUIUIHooks { show: function, hide: function, focus: function, destroy: function }
@@ -21,9 +22,7 @@ local str_utils = require("utils.string")
 ---@field _on_exited_subscribers TUICallbackMap Map of subscribers of the exit event
 ---@field status "pending" | "running" | "exited" | "destroyed" The status of the controller
 ---@field _job_id string Job ID of the tui process
-local Controller = {}
-Controller.__index = Controller
-Controller.__is_class = true
+local TUIController = oop_utils.create_class()
 
 ---@class TUICreateControllerOptions
 ---@field extra_args? ShellOpts
@@ -35,7 +34,7 @@ Controller.__is_class = true
 --
 ---@param opts? TUICreateControllerOptions
 ---@return TUIController
-function Controller.new(opts)
+function TUIController.new(opts)
   opts = opts_utils.extend({}, opts)
   ---@cast opts TUICreateControllerOptions
 
@@ -48,11 +47,11 @@ function Controller.new(opts)
     _extra_args = opts.extra_args,
     _ui_hooks = nil,
     _extra_env_vars = opts.extra_env_vars,
-    _on_exited_subscribers = CallbackMap.new(),
+    _on_exited_subscribers = TUICallbackMap.new(),
     _prev_win = vim.api.nvim_get_current_win(),
     _status = "pending",
   }
-  setmetatable(controller, Controller)
+  setmetatable(controller, TUIController)
 
   ---@cast controller TUIController
 
@@ -60,7 +59,7 @@ function Controller.new(opts)
 end
 
 -- Destroy controller
-function Controller:_destroy()
+function TUIController:_destroy()
   self._ui_hooks:destroy()
 
   self._index:remove(self._id)
@@ -71,12 +70,12 @@ end
 -- Retrieve prev window (before opening tui)
 --
 ---@return integer
-function Controller:prev_win() return self._prev_win end
+function TUIController:prev_win() return self._prev_win end
 
 -- Retrieve prev buffer (before opening tui)
 --
 ---@return integer
-function Controller:prev_buf()
+function TUIController:prev_buf()
   local win = self:prev_win()
   return vim.api.nvim_win_get_buf(win)
 end
@@ -84,19 +83,19 @@ end
 -- Retrieve the filepath of the file opened in prev buffer (before opening tui)
 --
 ---@return string
-function Controller:prev_filepath()
+function TUIController:prev_filepath()
   return vim.api.nvim_buf_get_name(self:prev_buf())
 end
 
 -- Retrieve prev tab (before opening tui)
 --
 ---@return integer
-function Controller:prev_tab()
+function TUIController:prev_tab()
   return vim.api.nvim_win_get_tabpage(self:prev_win())
 end
 
 -- Show the UI and focus on it
-function Controller:show_and_focus()
+function TUIController:show_and_focus()
   if not self._ui_hooks then
     error("UI hooks missing. Please first set them up")
   end
@@ -110,7 +109,7 @@ end
 -- Hide the UI
 --
 ---@param opts? { restore_focus?: boolean }
-function Controller:hide(opts)
+function TUIController:hide(opts)
   opts = opts_utils.extend({ restore_focus = true }, opts)
 
   if not self._ui_hooks then
@@ -123,13 +122,13 @@ function Controller:hide(opts)
 end
 
 ---@param hooks TUIUIHooks
-function Controller:set_ui_hooks(hooks) self._ui_hooks = hooks end
+function TUIController:set_ui_hooks(hooks) self._ui_hooks = hooks end
 
 -- Start the tui process
-function Controller:start() error("Not implemented") end
+function TUIController:start() error("Not implemented") end
 
 ---@param args ShellOpts
-function Controller:_args_extend(args)
+function TUIController:_args_extend(args)
   args = tbl_utils.tbl_extend(
     { mode = "error" },
     args,
@@ -141,7 +140,7 @@ function Controller:_args_extend(args)
 end
 
 ---@param env_vars ShellOpts
-function Controller:_env_vars_extend(env_vars)
+function TUIController:_env_vars_extend(env_vars)
   env_vars = tbl_utils.tbl_extend(
     { mode = "error" },
     env_vars,
@@ -154,7 +153,7 @@ function Controller:_env_vars_extend(env_vars)
 end
 
 ---@param opts { command: string, exit_code_handler?: fun(code: integer) }
-function Controller:_start(opts)
+function TUIController:_start(opts)
   opts = opts_utils.extend({
     exit_code_handler = function(code)
       if code == 0 then
@@ -201,18 +200,18 @@ end
 -- Send a message to the running tui instance
 --
 ---@param payload any
-function Controller:send(payload) error("Not implemented") end
+function TUIController:send(payload) error("Not implemented") end
 
 -- Subscribe to tui event
 --
 ---@param event string
 ---@param callback TUICallback
 ---@return fun(): nil Unsubscribe
-function Controller:subscribe(event, callback) error("Not implemented") end
+function TUIController:subscribe(event, callback) error("Not implemented") end
 
-function Controller:started() return self.status ~= "pending" end
+function TUIController:started() return self.status ~= "pending" end
 
-function Controller:exited()
+function TUIController:exited()
   return self.status == "exited" or self.status == "destroyed"
 end
 
@@ -220,8 +219,8 @@ end
 --
 ---@param callback fun()
 ---@return fun() Unsubscribe
-function Controller:on_exited(callback)
+function TUIController:on_exited(callback)
   return self._on_exited_subscribers:add_and_return_remove_fn(callback)
 end
 
-return Controller
+return TUIController

@@ -1,5 +1,5 @@
 local tbl_utils = require("utils.table")
-
+local oop_utils = require("utils.oop")
 local NuiLine = require("nui.line")
 local NuiText = require("nui.text")
 
@@ -14,24 +14,22 @@ local Section = {
 ---@class TUIPopupBorderText.component
 ---@field _subscribers TUIPopupBorderText.component.subscriber[]
 ---@field output NuiText | string
-local PopupBorderTextComponent = {}
-PopupBorderTextComponent.__index = PopupBorderTextComponent
-PopupBorderTextComponent.__is_class = true
+local TUIPopupBorderTextComponent = oop_utils.new_class()
 
 ---@return TUIPopupBorderText.component
-function PopupBorderTextComponent.new()
+function TUIPopupBorderTextComponent.new()
   local obj = {
     _subscribers = {},
     output = "",
   }
-  setmetatable(obj, PopupBorderTextComponent)
+  setmetatable(obj, TUIPopupBorderTextComponent)
   ---@cast obj TUIPopupBorderText.component
 
   return obj
 end
 
 ---@param output NuiText | string
-function PopupBorderTextComponent:render(output)
+function TUIPopupBorderTextComponent:render(output)
   self.output = output
 
   for _, subscriber in ipairs(self._subscribers) do
@@ -40,7 +38,7 @@ function PopupBorderTextComponent:render(output)
 end
 
 ---@param callback TUIPopupBorderText.component.subscriber
-function PopupBorderTextComponent:on_render(callback)
+function TUIPopupBorderTextComponent:on_render(callback)
   callback(self.output)
   table.insert(self._subscribers, callback)
 end
@@ -52,13 +50,11 @@ end
 ---@field _output NuiLine | string
 ---@field _popup TUIPopup For retrieving the popup's width
 ---@field _fake_border NuiText
-local PopupBorderText = {}
-PopupBorderText.__index = PopupBorderText
-PopupBorderText.__is_class = true
+local TUIPopupBorderText = oop_utils.new_class()
 
 ---@param opts { config: TUIConfig, popup: TUIPopup }
 ---@return TUIPopupBorderText
-function PopupBorderText.new(opts)
+function TUIPopupBorderText.new(opts)
   local obj = {
     _config = opts.config,
     _popup = opts.popup,
@@ -70,7 +66,7 @@ function PopupBorderText.new(opts)
     _subscribers = {},
     _fake_border = NuiText(""),
   }
-  setmetatable(obj, PopupBorderText)
+  setmetatable(obj, TUIPopupBorderText)
   ---@cast obj TUIPopupBorderText
 
   return obj
@@ -78,8 +74,8 @@ end
 
 ---@param section TUIPopupBorderText.section
 ---@return TUIPopupBorderText.component
-function PopupBorderText:prepend(section)
-  local component = PopupBorderTextComponent.new()
+function TUIPopupBorderText:prepend(section)
+  local component = TUIPopupBorderTextComponent.new()
   table.insert(self._components[section], 1, component)
 
   component:on_render(function(output) self:render() end)
@@ -89,8 +85,8 @@ end
 
 ---@param section TUIPopupBorderText.section
 ---@return TUIPopupBorderText.component
-function PopupBorderText:append(section)
-  local component = PopupBorderTextComponent.new()
+function TUIPopupBorderText:append(section)
+  local component = TUIPopupBorderTextComponent.new()
   table.insert(self._components[section], component)
 
   component:on_render(function(output) self:render() end)
@@ -101,8 +97,8 @@ end
 ---@param section TUIPopupBorderText.section
 ---@param order number?
 ---@return TUIPopupBorderText.component
-function PopupBorderText:add(section, order)
-  local component = PopupBorderTextComponent.new()
+function TUIPopupBorderText:add(section, order)
+  local component = TUIPopupBorderTextComponent.new()
 
   if order == nil then
     table.insert(self._components[section], component)
@@ -115,7 +111,7 @@ function PopupBorderText:add(section, order)
   return component
 end
 
-function PopupBorderText:render()
+function TUIPopupBorderText:render()
   if not self._popup.winid then return end
 
   local output = NuiLine()
@@ -204,7 +200,7 @@ function PopupBorderText:render()
   end
 end
 
-function PopupBorderText:clear()
+function TUIPopupBorderText:clear()
   self._components = {
     [Section.left] = {},
     [Section.right] = {},
@@ -212,9 +208,9 @@ function PopupBorderText:clear()
 end
 
 ---@param callback fun(output: NuiLine | string)
-function PopupBorderText:on_render(callback)
+function TUIPopupBorderText:on_render(callback)
   callback(self._output)
   table.insert(self._subscribers, callback)
 end
 
-return PopupBorderText
+return TUIPopupBorderText

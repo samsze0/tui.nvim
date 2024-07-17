@@ -4,14 +4,14 @@ local uuid_utils = require("utils.uuid")
 
 ---@class TUICallbackMap
 ---@field private value table<string, TUICallback> Callback map
-local CallbackMap = {}
-CallbackMap.__index = CallbackMap
+local TUICallbackMap = {}
+TUICallbackMap.__index = TUICallbackMap
 
 ---@param base? TUICallbackMap
 ---@return TUICallbackMap self
-function CallbackMap.new(base)
+function TUICallbackMap.new(base)
   local obj = base or {}
-  setmetatable(obj, CallbackMap)
+  setmetatable(obj, TUICallbackMap)
   obj.value = {}
   return obj
 end
@@ -20,7 +20,7 @@ end
 --
 ---@param callback TUICallback
 ---@return string key
-function CallbackMap:add(callback)
+function TUICallbackMap:add(callback)
   local key = self:empty_slot()
   self.value[key] = callback
   return key
@@ -29,7 +29,7 @@ end
 -- Remove callback from the map
 --
 ---@param key string
-function CallbackMap:remove(key)
+function TUICallbackMap:remove(key)
   if not self:exists(key) then error("Callback not found: " .. key) end
   self.value[key] = nil
 end
@@ -38,7 +38,7 @@ end
 --
 ---@param callback TUICallback
 ---@return fun(): nil
-function CallbackMap:add_and_return_remove_fn(callback)
+function TUICallbackMap:add_and_return_remove_fn(callback)
   local key = self:add(callback)
   return function() self:remove(key) end
 end
@@ -47,7 +47,7 @@ end
 --
 ---@param key string
 ---@return TUICallback
-function CallbackMap:get(key)
+function TUICallbackMap:get(key)
   if not self:exists(key) then error("Callback not found: " .. key) end
   return self.value[key]
 end
@@ -55,7 +55,7 @@ end
 -- Find empty slot in the map and return the key
 --
 ---@return string key
-function CallbackMap:empty_slot()
+function TUICallbackMap:empty_slot()
   local key = uuid_utils.v4()
   local retry_count = 3
   while self:exists(key) and retry_count >= 1 do
@@ -66,13 +66,13 @@ function CallbackMap:empty_slot()
   return key
 end
 
-function CallbackMap:exists(key) return self.value[key] ~= nil end
+function TUICallbackMap:exists(key) return self.value[key] ~= nil end
 
 -- Invoke callback
 --
 ---@param key string
 ---@vararg any
-function CallbackMap:invoke(key, ...)
+function TUICallbackMap:invoke(key, ...)
   local cb = self:get(key)
   local args = { ... }
   vim.schedule(function() cb(unpack(args)) end)
@@ -82,7 +82,7 @@ end
 --
 ---@param key string
 ---@vararg any
-function CallbackMap:invoke_if_exists(key, ...)
+function TUICallbackMap:invoke_if_exists(key, ...)
   if not self:exists(key) then return end
   local args = { ... }
   self:invoke(key, unpack(args))
@@ -91,11 +91,11 @@ end
 -- Invoke all callbacks
 --
 ---@vararg any
-function CallbackMap:invoke_all(...)
+function TUICallbackMap:invoke_all(...)
   local args = { ... }
   for _, cb in pairs(self.value) do
     vim.schedule(function() cb(unpack(args)) end)
   end
 end
 
-return CallbackMap
+return TUICallbackMap

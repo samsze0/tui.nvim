@@ -3,6 +3,7 @@ local opts_utils = require("utils.opts")
 local lang_utils = require("utils.lang")
 local match = lang_utils.match
 local tbl_utils = require("utils.table")
+local oop_utils = require("utils.oop")
 
 ---@type nui_layout_options
 local layout_opts = {
@@ -23,10 +24,7 @@ local layout_opts = {
 ---@field help_popup TUIHelpPopup
 ---@field restore fun(self: TUILayout)
 ---@field _layout_config TUILayout.layout_config
-local Layout = {}
-Layout.__index = Layout
-Layout.__is_class = true
-setmetatable(Layout, { __index = NuiLayout })
+local TUILayout = oop_utils.new_class(NuiLayout)
 
 ---@class TUILayout.constructor.opts
 ---@field layout_opts nui_layout_options
@@ -38,7 +36,7 @@ setmetatable(Layout, { __index = NuiLayout })
 
 ---@param opts TUILayout.constructor.opts
 ---@return TUILayout
-function Layout.new(opts)
+function TUILayout.new(opts)
   opts = opts_utils.deep_extend({
     layout_opts = layout_opts,
   }, opts)
@@ -49,7 +47,7 @@ function Layout.new(opts)
     help_popup = opts.help_popup,
   })
   local obj = NuiLayout(opts.layout_opts, initial_layout)
-  setmetatable(obj, Layout)
+  setmetatable(obj, TUILayout)
   ---@cast obj TUILayout
 
   obj._config = opts.config
@@ -67,14 +65,14 @@ end
 -- All popups but help_popup
 --
 ---@return TUIPopup[]
-function Layout:all_popups()
+function TUILayout:all_popups()
   return {
     self.main_popup,
     unpack(tbl_utils.values(self.side_popups)),
   }
 end
 
-function Layout:restore()
+function TUILayout:restore()
   for _, popup in ipairs(self:all_popups()) do
     popup.should_show = true
   end
@@ -84,7 +82,7 @@ end
 
 ---@param popup TUIPopup
 ---@param opts? { toggle?: boolean }
-function Layout:maximise_popup(popup, opts)
+function TUILayout:maximise_popup(popup, opts)
   opts = opts or {}
 
   -- Check if popup belongs to layout
@@ -123,7 +121,7 @@ function Layout:maximise_popup(popup, opts)
   end
 end
 
-function Layout:_setup_move_keymaps()
+function TUILayout:_setup_move_keymaps()
   local keymaps = self._config.value.keymaps.move_to_pane
   ---@cast keymaps -nil
 
@@ -140,7 +138,7 @@ function Layout:_setup_move_keymaps()
   end
 end
 
-function Layout:_setup_maximise_keymaps()
+function TUILayout:_setup_maximise_keymaps()
   local keymaps_config = self._config.value.keymaps
   ---@cast keymaps_config -nil
 
@@ -153,4 +151,4 @@ function Layout:_setup_maximise_keymaps()
   end
 end
 
-return Layout
+return TUILayout
