@@ -322,7 +322,7 @@ end
 ---@param name? string Purpose of the handler
 ---@param handler fun()
 ---@param opts? { force?: boolean }
-function TUIPopup:map(mode, key, name, handler, opts)
+function TUIPopup:map(key, name, handler, opts)
   error("Not implemented")
 end
 
@@ -347,7 +347,7 @@ end
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
-function TUIPopup:map_remote(mode, popup, name, key, opts)
+function TUIPopup:map_remote(popup, name, key, opts)
   error("Not implemented")
 end
 
