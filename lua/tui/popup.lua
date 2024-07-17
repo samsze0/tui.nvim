@@ -254,9 +254,9 @@ end
 ---@class TUIHelpPopup: TUIPopup
 local TUIHelpPopup = oop_utils.new_class(TUIPopup)
 
----@class HelpPopup.constructor.opts : TUIPopup.constructor.opts
+---@class TUIHelpPopup.constructor.opts : TUIPopup.constructor.opts
 
----@param opts HelpPopup.constructor.opts
+---@param opts TUIHelpPopup.constructor.opts
 ---@return TUIHelpPopup
 function TUIHelpPopup.new(opts)
   opts = opts_utils.deep_extend({
