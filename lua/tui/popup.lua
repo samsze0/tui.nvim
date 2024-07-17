@@ -318,6 +318,14 @@ function TUIPopup:_map(mode, key, name, handler, opts)
   self._tui_keymaps[key] = name
 end
 
+---@param key string
+---@param name? string Purpose of the handler
+---@param handler fun()
+---@param opts? { force?: boolean }
+function TUIPopup:map(mode, key, name, handler, opts)
+  error("Not implemented")
+end
+
 ---@param mode string
 ---@param popup TUISidePopup
 ---@param key string
@@ -333,6 +341,14 @@ function TUIPopup:_map_remote(mode, popup, name, key, opts)
     -- Because nvim_input is non-blocking, so we need to schedule the switch such that the switch happens after the input
     vim.schedule(function() vim.api.nvim_set_current_win(self.winid) end)
   end, opts)
+end
+
+---@param popup TUISidePopup
+---@param key string
+---@param name? string Purpose of the handler
+---@param opts? { force?: boolean }
+function TUIPopup:map_remote(mode, popup, name, key, opts)
+  error("Not implemented")
 end
 
 ---@param key string
