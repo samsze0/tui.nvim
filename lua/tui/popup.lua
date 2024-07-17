@@ -331,7 +331,7 @@ end
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
-function TUIPopup:_map_remote(mode, popup, name, key, opts)
+function TUIPopup:_map_remote(mode, popup, key, name, opts)
   self:_map(mode, key, name, function()
     -- Looks like window doesn't get redrawn if we don't switch to it
     -- vim.api.nvim_win_call(popup.winid, function() vim.api.nvim_input(key) end)
@@ -364,7 +364,7 @@ end
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
 function TUIMainPopup:map_remote(popup, key, name, opts)
-  self:_map_remote("t", popup, name, key, opts)
+  self:_map_remote("t", popup, key, name, opts)
 end
 
 ---@param name? string Purpose of the handler
@@ -379,7 +379,7 @@ end
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
 function TUISidePopup:map_remote(popup, key, name, opts)
-  self:_map_remote("n", popup, name, key, opts)
+  self:_map_remote("n", popup, key, name, opts)
 end
 
 return {

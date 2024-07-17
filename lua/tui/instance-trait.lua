@@ -26,26 +26,26 @@ function TUIInstanceTrait:setup_scroll_keymaps(target_popup, opts)
 
   self.layout.main_popup:map_remote(
     target_popup,
-    "Scroll preview up",
     "<S-Up>",
+    "Scroll preview up",
     { force = opts.force }
   )
   self.layout.main_popup:map_remote(
     target_popup,
-    "Scroll preview left",
     "<S-Left>",
+    "Scroll preview left",
     { force = opts.force }
   )
   self.layout.main_popup:map_remote(
     target_popup,
-    "Scroll preview down",
     "<S-Down>",
+    "Scroll preview down",
     { force = opts.force }
   )
   self.layout.main_popup:map_remote(
     target_popup,
-    "Scroll preview right",
     "<S-Right>",
+    "Scroll preview right",
     { force = opts.force }
   )
 end
