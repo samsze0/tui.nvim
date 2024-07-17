@@ -27,8 +27,8 @@ local layout_opts = {
 local TUILayout = oop_utils.new_class(NuiLayout)
 
 ---@class TUILayout.constructor.opts
----@field layout_opts nui_layout_options
----@field config TUIConfig
+---@field layout_opts? nui_layout_options
+---@field config? TUIConfig
 ---@field layout_config TUILayout.layout_config
 ---@field main_popup TUIMainPopup
 ---@field side_popups TUISidePopup[]
