@@ -56,6 +56,7 @@ function TUIInstanceTrait:setup_close_keymaps(opts)
   opts = opts or {}
 
   for _, popup in ipairs(tbl_utils.values(self.layout.side_popups)) do
+    ---@cast popup TUISidePopup
     popup:map("<Esc>", "Close", function()
       self:hide()
     end)
