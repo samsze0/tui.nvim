@@ -6,7 +6,7 @@ local oop_utils = require("utils.oop")
 
 ---@class TUIEventMap
 ---@field private value table<string, TUIEventMapAction[]>
-local TUIEventMap = oop_utils.create_class()
+local TUIEventMap = oop_utils.new_class()
 
 ---@param base? TUIEventMap
 ---@return TUIEventMap self

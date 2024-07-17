@@ -7,7 +7,7 @@ local oop_utils = require("utils.oop")
 ---@class TUIControllerMap
 ---@field _id_map table<TUIControllerId, TUIController>
 ---@field most_recent? TUIController
-local TUIControllerMap = oop_utils.create_class()
+local TUIControllerMap = oop_utils.new_class()
 
 function TUIControllerMap.new()
   return setmetatable({

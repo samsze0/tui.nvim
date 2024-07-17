@@ -22,7 +22,7 @@ local oop_utils = require("utils.oop")
 ---@field _on_exited_subscribers TUICallbackMap Map of subscribers of the exit event
 ---@field status "pending" | "running" | "exited" | "destroyed" The status of the controller
 ---@field _job_id string Job ID of the tui process
-local TUIController = oop_utils.create_class()
+local TUIController = oop_utils.new_class()
 
 ---@class TUICreateControllerOptions
 ---@field extra_args? ShellOpts

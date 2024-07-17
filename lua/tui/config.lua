@@ -35,7 +35,7 @@ local oop_utils = require("utils.oop")
 --
 ---@class TUIConfig
 ---@field value TUIConfig.config
-local TUIConfig = oop_utils.create_class()
+local TUIConfig = oop_utils.new_class()
 
 ---@param config? TUIConfig.config
 function TUIConfig:setup(config)

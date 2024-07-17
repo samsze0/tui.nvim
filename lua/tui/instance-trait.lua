@@ -5,7 +5,7 @@ local oop_utils = require("utils.oop")
 --
 ---@class TUIInstanceTrait : TUIController
 ---@field layout TUILayout
-local TUIInstanceTrait = oop_utils.create_class(TUIController)
+local TUIInstanceTrait = oop_utils.new_class(TUIController)
 
 -- Configure controller UI hooks
 function TUIInstanceTrait:setup_controller_ui_hooks()
