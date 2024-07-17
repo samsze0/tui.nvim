@@ -28,7 +28,15 @@ Layout.__index = Layout
 Layout.__is_class = true
 setmetatable(Layout, { __index = NuiLayout })
 
----@param opts { layout_opts?: nui_layout_options, config: TUIConfig, layout_config: TUILayout.layout_config, main_popup: TUIMainPopup, side_popups: TUISidePopup[], help_popup: TUIHelpPopup }
+---@class TUILayout.constructor.opts
+---@field layout_opts nui_layout_options
+---@field config TUIConfig
+---@field layout_config TUILayout.layout_config
+---@field main_popup TUIMainPopup
+---@field side_popups TUISidePopup[]
+---@field help_popup TUIHelpPopup
+
+---@param opts TUILayout.constructor.opts
 ---@return TUILayout
 function Layout.new(opts)
   opts = opts_utils.deep_extend({
@@ -117,6 +125,8 @@ end
 
 function Layout:_setup_move_keymaps()
   local keymaps = self._config.value.keymaps.move_to_pane
+  ---@cast keymaps -nil
+
   for _, popup in ipairs(self:all_popups()) do
     for direction, key in pairs(keymaps) do
       popup:map(key, "Move to " .. direction, function()
@@ -131,9 +141,12 @@ function Layout:_setup_move_keymaps()
 end
 
 function Layout:_setup_maximise_keymaps()
+  local keymaps_config = self._config.value.keymaps
+  ---@cast keymaps_config -nil
+
   for _, popup in ipairs(self:all_popups()) do
     popup:map(
-      self._config.value.keymaps.toggle_maximise,
+      keymaps_config.toggle_maximise,
       "Toggle maximise",
       function() self:maximise_popup(popup, { toggle = true }) end
     )

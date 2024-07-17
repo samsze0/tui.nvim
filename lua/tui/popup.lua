@@ -32,7 +32,11 @@ Popup.__is_class = true
 Popup.__name = "Popup"
 setmetatable(Popup, { __index = NuiPopup })
 
----@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
+---@class TUIPopup.constructor.opts
+---@field popup_opts? nui_popup_options
+---@field config TUIConfig
+
+---@param opts TUIPopup.constructor.opts
 ---@return TUIPopup
 function Popup.new(opts)
   local config = opts.config.value
@@ -118,7 +122,9 @@ MainPopup.__is_class = true
 MainPopup.__name = "MainPopup"
 setmetatable(MainPopup, { __index = Popup })
 
----@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
+---@class TUIMainPopup.constructor.opts : TUIPopup.constructor.opts
+
+---@param opts TUIMainPopup.constructor.opts
 ---@return TUIMainPopup
 function MainPopup.new(opts)
   opts = opts_utils.deep_extend({
@@ -148,7 +154,9 @@ SidePopup.__is_class = true
 MainPopup.__name = "SidePopup"
 setmetatable(SidePopup, { __index = Popup })
 
----@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
+---@class TUISidePopup.constructor.opts : TUIPopup.constructor.opts
+
+---@param opts TUISidePopup.constructor.opts
 ---@return TUISidePopup
 function SidePopup.new(opts)
   opts = opts_utils.deep_extend({
@@ -260,7 +268,9 @@ HelpPopup.__index = HelpPopup
 HelpPopup.__is_class = true
 setmetatable(HelpPopup, { __index = Popup })
 
----@param opts { popup_opts?: nui_popup_options, config: TUIConfig }
+---@class HelpPopup.constructor.opts : TUIPopup.constructor.opts
+
+---@param opts HelpPopup.constructor.opts
 ---@return TUIHelpPopup
 function HelpPopup.new(opts)
   opts = opts_utils.deep_extend({

@@ -98,6 +98,23 @@ function PopupBorderText:append(section)
   return component
 end
 
+---@param section TUIPopupBorderText.section
+---@param order number?
+---@return TUIPopupBorderText.component
+function PopupBorderText:add(section, order)
+  local component = PopupBorderTextComponent.new()
+
+  if order == nil then
+    table.insert(self._components[section], component)
+  else
+    error("Not implemented")
+  end
+
+  component:on_render(function(output) self:render() end)
+
+  return component
+end
+
 function PopupBorderText:render()
   if not self._popup.winid then return end
 

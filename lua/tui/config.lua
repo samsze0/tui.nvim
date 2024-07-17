@@ -13,7 +13,7 @@ local opts_utils = require("utils.opts")
 
 ---@class TUIKeymapsConfig
 ---@field move_to_pane TUIKeymapsConfig.move_to_pane?
----@field maximise string?
+---@field toggle_maximise string?
 ---@field copy_filepath_to_clipboard string?
 
 ---@class TUIHighlightGroupsConfig.border
