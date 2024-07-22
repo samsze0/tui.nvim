@@ -74,7 +74,7 @@ end
 
 function TUILayout:restore()
   for _, popup in ipairs(self:all_popups()) do
-    popup.should_show = true
+    popup.visible = true
   end
 
   self:update(self._layout_config(self))
@@ -95,11 +95,11 @@ function TUILayout:maximise_popup(popup, opts)
   if opts.toggle then
     local maximised_popups = tbl_utils.filter(
       all_popups,
-      function(_, p) return p.should_show end
+      function(_, p) return p.visible end
     )
     if #maximised_popups == 1 and maximised_popups[1] == popup then
       for _, p in ipairs(all_popups) do
-        p.should_show = true
+        p.visible = true
       end
       self:update(self._layout_config(self))
       for _, p in ipairs(all_popups) do
@@ -111,9 +111,9 @@ function TUILayout:maximise_popup(popup, opts)
   end
 
   for _, p in ipairs(all_popups) do
-    p.should_show = false
+    p.visible = false
   end
-  popup.should_show = true
+  popup.visible = true
   self:update(self._layout_config(self))
   for _, p in ipairs(all_popups) do
     p.top_border_text:render()

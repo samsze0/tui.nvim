@@ -8,21 +8,12 @@ local PopupBorderText = require("tui.popup-border-text")
 local winhighlight_utils = require("utils.winhighlight")
 local oop_utils = require("utils.oop")
 
--- TODO: move isinstance function to oop utils
--- local function is_instance(o, class)
---   while o do
---     o = getmetatable(o)
---     if class == o then return true end
---   end
---   return false
--- end
-
 ---@class TUIPopup: NuiPopup
 ---@field _config TUIConfig
 ---@field _tui_keymaps table<string, string> Mappings of key to name (of the handler)
 ---@field top_border_text TUIPopupBorderText
 ---@field bottom_border_text TUIPopupBorderText
----@field should_show boolean
+---@field visible boolean Whether or not the popup is visible within the TUILayout
 ---@field left? TUIPopup
 ---@field right? TUIPopup
 ---@field up? TUIPopup
@@ -66,7 +57,7 @@ function TUIPopup.new(opts)
   setmetatable(obj, TUIPopup)
   ---@cast obj TUIPopup
 
-  obj.should_show = true
+  obj.visible = true
 
   obj._tui_keymaps = {}
   obj._config = opts.config
