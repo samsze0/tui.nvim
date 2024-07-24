@@ -242,14 +242,21 @@ function TUISidePopup:show_buf_content(buf, opts)
   self:show_file_content(path, { cursor_pos = opts.cursor_pos })
 end
 
----@class TUIHelpPopup: TUIPopup
-local TUIHelpPopup = oop_utils.new_class(TUIPopup)
+---@class TUIOverlayPopup: TUISidePopup
+---@field private left any
+---@field private right any
+---@field private up any
+---@field private down any
+---@field private visible any
+---@field _toggle_keymap string
+local TUIOverlayPopup = oop_utils.new_class(TUISidePopup)
 
----@class TUIHelpPopup.constructor.opts : TUIPopup.constructor.opts
+---@class TUIOverlayPopup.constructor.opts : TUISidePopup.constructor.opts
+---@field toggle_keymap string
 
----@param opts TUIHelpPopup.constructor.opts
----@return TUIHelpPopup
-function TUIHelpPopup.new(opts)
+---@param opts TUIOverlayPopup.constructor.opts
+---@return TUIOverlayPopup
+function TUIOverlayPopup.new(opts)
   opts = opts_utils.deep_extend({
     popup_opts = {
       win_options = {
@@ -265,29 +272,37 @@ function TUIHelpPopup.new(opts)
     },
   }, opts)
 
-  local obj = TUIPopup.new(opts)
-  setmetatable(obj, TUIHelpPopup)
-  ---@cast obj TUIHelpPopup
+  local obj = TUISidePopup.new(opts)
+  setmetatable(obj, TUIOverlayPopup)
+  ---@cast obj TUIOverlayPopup
 
-  -- FIX: border text not showing
-  obj.border:set_text("top", " Help ", "left")
+  obj._toggle_keymap = opts.toggle_keymap
 
   return obj
 end
 
----@param lines string[]
-function TUIHelpPopup:set_lines(lines)
-  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, lines)
-end
+function TUIOverlayPopup:is_visible() return self.winid ~= nil end
 
----@param keymaps table<string, string>
-function TUIHelpPopup:set_keymaps(keymaps)
-  local items = tbl_utils.map(
-    keymaps,
-    function(key, name) return name .. " : " .. key end
-  )
-  items = tbl_utils.sort(items, function(a, b) return a < b end)
-  self:set_lines(items)
+---@class TUIHelpPopup: TUIOverlayPopup
+---@fieid private _toggle_keymap any
+local TUIHelpPopup = oop_utils.new_class(TUIOverlayPopup)
+
+---@class TUIHelpPopup.constructor.opts : TUIOverlayPopup.constructor.opts
+---@field private toggle_keymap any
+
+---@param opts TUIHelpPopup.constructor.opts
+---@return TUIHelpPopup
+function TUIHelpPopup.new(opts)
+  opts = opts_utils.deep_extend({}, opts)
+
+  local obj = TUIOverlayPopup.new(opts)
+  setmetatable(obj, TUIHelpPopup)
+  ---@cast obj TUIHelpPopup
+
+  local title = obj.top_border_text:prepend("left")
+  title:render("Help")
+
+  return obj
 end
 
 ---@param mode string
@@ -313,9 +328,7 @@ end
 ---@param name? string Purpose of the handler
 ---@param handler fun()
 ---@param opts? { force?: boolean }
-function TUIPopup:map(key, name, handler, opts)
-  error("Not implemented")
-end
+function TUIPopup:map(key, name, handler, opts) error("Not implemented") end
 
 ---@param mode string
 ---@param popup TUISidePopup
@@ -338,9 +351,7 @@ end
 ---@param key string
 ---@param name? string Purpose of the handler
 ---@param opts? { force?: boolean }
-function TUIPopup:map_remote(popup, name, key, opts)
-  error("Not implemented")
-end
+function TUIPopup:map_remote(popup, name, key, opts) error("Not implemented") end
 
 ---@param key string
 ---@param name? string Purpose of the handler
@@ -377,5 +388,6 @@ return {
   AbstractPopup = TUIPopup,
   MainPopup = TUIMainPopup,
   SidePopup = TUISidePopup,
+  OverlayPopup = TUIOverlayPopup,
   HelpPopup = TUIHelpPopup,
 }
