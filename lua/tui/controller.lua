@@ -58,6 +58,12 @@ function TUIController.new(opts)
   return controller
 end
 
+function TUIController:_info(...) self._config.value.notifier.info(...) end
+
+function TUIController:_warn(...) self._config.value.notifier.warn(...) end
+
+function TUIController:_error(...) self._config.value.notifier.error(...) end
+
 -- Destroy controller
 function TUIController:_destroy()
   self._ui_hooks:destroy()
@@ -180,7 +186,7 @@ function TUIController:_start(opts)
           self:_destroy()
         end,
         function(err)
-          self._config.value.notifier.error(
+          self:_error(
             debug.traceback("An error occurred during on_exit: " .. err)
           )
         end

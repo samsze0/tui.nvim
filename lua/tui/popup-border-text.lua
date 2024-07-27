@@ -72,15 +72,19 @@ function TUIPopupBorderText.new(opts)
   return obj
 end
 
+function TUIPopupBorderText:_info(...) self._config.value.notifier.info(...) end
+
+function TUIPopupBorderText:_warn(...) self._config.value.notifier.warn(...) end
+
+function TUIPopupBorderText:_error(...) self._config.value.notifier.error(...) end
+
 ---@param section TUIPopupBorderText.section
 ---@return TUIPopupBorderText.component
 function TUIPopupBorderText:prepend(section)
   local component = TUIPopupBorderTextComponent.new()
   table.insert(self._components[section], 1, component)
 
-  component:on_render(function(output)
-    self:render()
-  end)
+  component:on_render(function(output) self:render() end)
 
   return component
 end
@@ -118,9 +122,9 @@ function TUIPopupBorderText:render()
   -- The window would not have been mounted yet if the layouts and popups are created in the same tick as the popup text
   vim.schedule(function()
     if not self._popup.winid then return end
-  
+
     local output = NuiLine()
-  
+
     ---@param section TUIPopupBorderText.section
     ---@return (string | NuiText)[]
     local collect_texts = function(section)
@@ -138,14 +142,14 @@ function TUIPopupBorderText:render()
         end
       )
     end
-  
+
     local left_texts = collect_texts(Section.left)
     local right_texts = collect_texts(Section.right)
-  
+
     -- TODO: make these char configurable
     local padding = " "
     local sep = " "
-  
+
     local left_width = tbl_utils.sum(left_texts, function(_, t)
       if type(t) == "string" then
         return #t
@@ -172,11 +176,11 @@ function TUIPopupBorderText:render()
     else
       total_right_width = right_width + (#right_texts - 1) * #sep + #padding * 2
     end
-  
+
     local remaining_width = vim.api.nvim_win_get_width(self._popup.winid)
       - total_left_width
       - total_right_width
-  
+
     if left_width > 0 then
       output:append(padding)
       for i, text in ipairs(left_texts) do
@@ -185,11 +189,11 @@ function TUIPopupBorderText:render()
       end
       output:append(padding)
     end
-  
+
     -- TODO: rely on nui native API instead (once this feat is available)
     self._fake_border:set(("─"):rep(remaining_width), "FloatBorder")
     output:append(self._fake_border)
-  
+
     if right_width > 0 then
       output:append(padding)
       for i, text in ipairs(right_texts) do
@@ -198,7 +202,7 @@ function TUIPopupBorderText:render()
       end
       output:append(padding)
     end
-  
+
     self._output = output
     for _, subscriber in ipairs(self._subscribers) do
       subscriber(output)

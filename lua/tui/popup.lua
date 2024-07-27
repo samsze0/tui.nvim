@@ -8,6 +8,9 @@ local PopupBorderText = require("tui.popup-border-text")
 local winhighlight_utils = require("utils.winhighlight")
 local oop_utils = require("utils.oop")
 
+local NORMAL_POPUP_Z_INDEX = 50
+local OVERLAY_POPUP_Z_INDEX = 100
+
 ---@class TUIPopup: NuiPopup
 ---@field _config TUIConfig
 ---@field _tui_keymaps table<string, string> Mappings of key to name (of the handler)
@@ -42,6 +45,7 @@ function TUIPopup.new(opts)
     win_options = {
       winblend = 0,
     },
+    zindex = NORMAL_POPUP_Z_INDEX,
   }
 
   popup_opts = opts_utils.deep_extend(popup_opts, opts.popup_opts)
@@ -102,6 +106,12 @@ function TUIPopup:focus() vim.api.nvim_set_current_win(self.winid) end
 --
 ---@return table<string, string>
 function TUIPopup:keymaps() return self._tui_keymaps end
+
+function TUIPopup:_info(...) self._config.value.notifier.info(...) end
+
+function TUIPopup:_warn(...) self._config.value.notifier.warn(...) end
+
+function TUIPopup:_error(...) self._config.value.notifier.error(...) end
 
 ---@class TUIMainPopup: TUIPopup
 local TUIMainPopup = oop_utils.new_class(TUIPopup)
@@ -247,7 +257,6 @@ end
 ---@field private right any
 ---@field private up any
 ---@field private down any
----@field private visible any
 ---@field _toggle_keymap string
 local TUIOverlayPopup = oop_utils.new_class(TUISidePopup)
 
@@ -268,7 +277,7 @@ function TUIOverlayPopup.new(opts)
         width = "75%",
         height = "75%",
       },
-      zindex = 50,
+      zindex = OVERLAY_POPUP_Z_INDEX,
     },
   }, opts)
 
@@ -278,10 +287,10 @@ function TUIOverlayPopup.new(opts)
 
   obj._toggle_keymap = opts.toggle_keymap
 
+  obj.visible = false
+
   return obj
 end
-
-function TUIOverlayPopup:is_visible() return self.winid ~= nil end
 
 ---@class TUIHelpPopup: TUIOverlayPopup
 ---@fieid private _toggle_keymap any

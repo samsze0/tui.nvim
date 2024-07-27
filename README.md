@@ -12,8 +12,6 @@ TODO
 - Event unsubscription
 - Helper popup
 - Log out callback errors (atm errors are ignored)
-- Feature: dim inactive pane/window's border
-- Map move shortcut to noop if no pane exists in that direction
 - Job system to avoid blocking
 
 ## License

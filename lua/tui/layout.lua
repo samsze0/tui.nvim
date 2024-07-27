@@ -27,6 +27,7 @@ local layout_opts = {
 ---@field side_popups table<string, TUISidePopup>
 ---@field overlay_popups table<string, TUIOverlayPopup>
 ---@field _box_fn TUILayout.box_fn
+---@field _prev_win_before_opening_overlay integer?
 local TUILayout = oop_utils.new_class(NuiLayout)
 
 ---@class TUILayout.constructor.opts
@@ -57,6 +58,7 @@ function TUILayout.new(opts)
   obj.side_popups = opts.side_popups or {}
   obj.overlay_popups = opts.other_overlay_popups or {}
   obj.overlay_popups["help"] = opts.help_popup
+  obj._prev_win_before_opening_overlay = nil
 
   obj:_setup_move_keymaps()
   obj:_setup_maximise_keymaps()
@@ -99,13 +101,13 @@ end
 function TUILayout:maximise_popup(popup, opts)
   opts = opts or {}
 
-  -- Check if popup is a MainPopup or SidePopup
-  if
-    not oop_utils.is_instance(popup, TUIMainPopup)
-    or not oop_utils.is_instance(popup, TUISidePopup)
-  then
-    error("Popup is not a MainPopup or SidePopup")
-  end
+  -- TODO: Check if popup is a MainPopup or SidePopup
+  -- if
+  --   not oop_utils.is_instance(popup, TUIMainPopup)
+  --   or not oop_utils.is_instance(popup, TUISidePopup)
+  -- then
+  --   error("Popup is not a MainPopup or SidePopup")
+  -- end
 
   -- Check if popup belongs to layout
   local main_and_side_popups = self:get_main_and_side_popups()
@@ -134,11 +136,7 @@ function TUILayout:maximise_popup(popup, opts)
     end
   end
 
-  if opts.hide_overlay then
-    for _, p in ipairs(self.overlay_popups) do
-      p.visible = false
-    end
-  end
+  if opts.hide_overlay then self:hide_overlays() end
 
   for _, p in ipairs(main_and_side_popups) do
     p.visible = false
@@ -160,9 +158,10 @@ end
 function TUILayout:show_overlay_popup(popup, opts)
   opts = opts or {}
 
-  if not oop_utils.is_instance(popup, TUIOverlayPopup) then
-    error("Popup is not an OverlayPopup")
-  end
+  -- TODO
+  -- if not oop_utils.is_instance(popup, TUIOverlayPopup) then
+  --   error("Popup is not an OverlayPopup")
+  -- end
 
   if not tbl_utils.contains(tbl_utils.values(self.overlay_popups), popup) then
     error("Popup does not belong to layout")
@@ -172,26 +171,42 @@ function TUILayout:show_overlay_popup(popup, opts)
   if opts.toggle then
     local visible_overlay_popup = self:get_visible_overlay_popup()
     if visible_overlay_popup == popup then
-      popup:hide()
-      -- TODO: store a field `prev_focused_popup` in TUILayout to restore focus
-      local maximised_popup = self:get_maximised_popup()
-      if maximised_popup then
-        maximised_popup:focus()
-      else
-        self.main_popup:focus()
-      end
+      self:hide_overlays()
       return
     end
   end
 
-  for _, p in pairs(self.overlay_popups) do
-    if p:is_visible() then p:hide() end
+  for _, p in ipairs(tbl_utils.values(self.overlay_popups)) do
+    p.visible = false
   end
-  popup:show()
-  popup:focus()
+  popup.visible = true
+  self:update_overlays()
 
   popup.top_border_text:render()
   popup.bottom_border_text:render()
+end
+
+function TUILayout:update_overlays()
+  -- FIX: Using `filter` here without `values` getting unexpected results
+  local overlays_to_show = tbl_utils.filter(
+    tbl_utils.values(self.overlay_popups),
+    function(_, p) return p.visible end
+  )
+  if #overlays_to_show > 1 then
+    error("There can only be one overlay popup visible at a time")
+  end
+
+  for _, p in ipairs(tbl_utils.values(self.overlay_popups)) do
+    p:hide()
+  end
+
+  if #overlays_to_show == 1 then
+    local o = overlays_to_show[1]
+    ---@cast o TUIOverlayPopup
+    self._prev_win_before_opening_overlay = vim.api.nvim_get_current_win()
+    o:show()
+    o:focus()
+  end
 end
 
 -- Return the maximised popup if there is one, otherwise return nil
@@ -199,12 +214,11 @@ end
 ---@return (TUIMainPopup | TUISidePopup)?
 function TUILayout:get_maximised_popup()
   local main_and_side_popups = self:get_main_and_side_popups()
-  local maximised_popups = tbl_utils.filter(
+  local visible_popups = tbl_utils.filter(
     main_and_side_popups,
     function(_, p) return p.visible end
   )
-  if #maximised_popups == 1 then return maximised_popups[1] end
-  if #maximised_popups > 1 then error("More than one popups are maximised") end
+  if #visible_popups == 1 then return visible_popups[1] end
   return nil
 end
 
@@ -213,14 +227,26 @@ end
 ---@return TUIOverlayPopup?
 function TUILayout:get_visible_overlay_popup()
   local visible_overlay_popups = tbl_utils.filter(
-    self.overlay_popups,
-    function(_, p) return p:is_visible() end
+    tbl_utils.values(self.overlay_popups),
+    function(_, p) return p.visible end
   )
   if #visible_overlay_popups == 1 then return visible_overlay_popups[1] end
   if #visible_overlay_popups > 1 then
     error("More than one overlay popups are visible")
   end
-  return nil
+  return visible_overlay_popups[1]
+end
+
+---@param opts? { }
+function TUILayout:hide_overlays(opts)
+  for _, p in ipairs(tbl_utils.values(self.overlay_popups)) do
+    p.visible = false
+  end
+  self:update_overlays()
+
+  local prev_win = self._prev_win_before_opening_overlay
+  if not prev_win then error("No prev win prior to opening overlay") end
+  vim.api.nvim_set_current_win(prev_win)
 end
 
 function TUILayout:_setup_move_keymaps()
@@ -254,27 +280,36 @@ function TUILayout:_setup_maximise_keymaps()
 end
 
 function TUILayout:_setup_overlay_keymaps()
-  for _, main_or_side_popup in ipairs(self:get_main_and_side_popups()) do
-    for name, overlay_popup in pairs(self.overlay_popups) do
-      if oop_utils.is_instance(overlay_popup, TUIHelpPopup) then
-        goto continue
-      end
+  for name, overlay_popup in pairs(self.overlay_popups) do
+    if not overlay_popup._toggle_keymap then
+      self:_warn("Overlay popup " .. name .. " does not have a toggle keymap")
+      goto continue
+    end
 
-      if not overlay_popup._toggle_keymap then
-        self._config.value.notifier.warn(
-          "Overlay popup " .. name .. " does not have a toggle keymap"
-        )
-        goto continue
-      end
+    for _, main_or_side_popup in ipairs(self:get_main_and_side_popups()) do
+      if name == "help" then goto continue end
 
       main_or_side_popup:map(
         overlay_popup._toggle_keymap,
         "Toggle overlay " .. name,
         function() self:show_overlay_popup(overlay_popup, { toggle = true }) end
       )
-      ::continue::
     end
+
+    overlay_popup:map(
+      overlay_popup._toggle_keymap,
+      "Hide overlay",
+      function() self:hide_overlays() end
+    )
+
+    ::continue::
   end
 end
+
+function TUILayout:_info(...) self._config.value.notifier.info(...) end
+
+function TUILayout:_warn(...) self._config.value.notifier.warn(...) end
+
+function TUILayout:_error(...) self._config.value.notifier.error(...) end
 
 return TUILayout

@@ -57,10 +57,25 @@ function TUIInstanceMixin:setup_close_keymaps(opts)
 
   for _, popup in ipairs(tbl_utils.values(self.layout.side_popups)) do
     ---@cast popup TUISidePopup
-    popup:map("<Esc>", "Close", function()
-      self:hide()
+    popup:map("<Esc>", "Close", function() self:hide() end)
+  end
+
+  for _, popup in ipairs(tbl_utils.values(self.layout.overlay_popups)) do
+    ---@cast popup TUIOverlayPopup
+    popup:map("<Esc>", "Close overlay", function()
+      if self.layout:get_visible_overlay_popup() ~= popup then
+        self:_info("Overlay popup not visible")
+        return
+      end
+      self.layout:hide_overlays()
     end)
   end
 end
+
+function TUIInstanceMixin:_info(...) self._config.value.notifier.info(...) end
+
+function TUIInstanceMixin:_warn(...) self._config.value.notifier.warn(...) end
+
+function TUIInstanceMixin:_error(...) self._config.value.notifier.error(...) end
 
 return TUIInstanceMixin
