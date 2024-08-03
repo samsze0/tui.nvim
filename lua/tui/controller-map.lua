@@ -35,7 +35,9 @@ end
 -- Add a controller to the index
 --
 ---@param controller TUIController
-function TUIControllerMap:add(controller) self._id_map[controller._id] = controller end
+function TUIControllerMap:add(controller)
+  self._id_map[controller._id] = controller
+end
 
 -- Retrieve all controllers
 --

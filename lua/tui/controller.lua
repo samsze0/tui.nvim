@@ -8,13 +8,11 @@ local oop_utils = require("utils.oop")
 
 ---@alias TUIControllerId string
 ---@alias TUIUIHooks { show: function, hide: function, focus: function, destroy: function }
----@alias TUIFocusedEntry any
 
 ---@class TUIController
 ---@field _id TUIControllerId The id of the controller
 ---@field _index TUIControllerMap Index of the controllers
 ---@field _config TUIConfig Configuration of the plugin
----@field focus? TUIFocusedEntry The currently focused entry
 ---@field _extra_args? ShellOpts Extra arguments to pass to tui
 ---@field _ui_hooks? TUIUIHooks UI hooks
 ---@field _extra_env_vars? ShellOpts Extra environment variables to pass to tui
@@ -43,7 +41,6 @@ function TUIController.new(opts)
     _id = controller_id,
     _index = opts.index,
     _config = opts.config,
-    focus = nil,
     _extra_args = opts.extra_args,
     _ui_hooks = nil,
     _extra_env_vars = opts.extra_env_vars,

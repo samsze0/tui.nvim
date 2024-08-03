@@ -121,7 +121,8 @@ function TUIPopupBorderText:render()
   -- The `vim.schedule` is for making sure the window is mounted by Nui before the render method is invoked
   -- The window would not have been mounted yet if the layouts and popups are created in the same tick as the popup text
   vim.schedule(function()
-    if not self._popup.winid then return end
+    local winid = self._popup:get_window()
+    if not winid then return end
 
     local output = NuiLine()
 
@@ -177,7 +178,7 @@ function TUIPopupBorderText:render()
       total_right_width = right_width + (#right_texts - 1) * #sep + #padding * 2
     end
 
-    local remaining_width = vim.api.nvim_win_get_width(self._popup.winid)
+    local remaining_width = vim.api.nvim_win_get_width(winid)
       - total_left_width
       - total_right_width
 

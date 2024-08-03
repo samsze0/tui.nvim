@@ -1,0 +1,4 @@
+return {
+  UNDERLAY_POPUP_Z_INDEX = 50,
+  OVERLAY_POPUP_Z_INDEX = 100,
+}
